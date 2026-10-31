@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StockMap · Depósito</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --texto:#1d2330; --suave:#6b7280; --acento:#2563eb; --peligro:#dc2626; --borde:#e3e6ec; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--texto); }
+    header { background:var(--card); border-bottom:1px solid var(--borde); padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    main { max-width:960px; margin:24px auto; padding:0 16px; }
+    .card { background:var(--card); border:1px solid var(--borde); border-radius:10px; padding:20px; margin-bottom:20px; }
+    h2 { margin:0 0 14px; font-size:1.1rem; }
+    label { display:block; font-size:.85rem; color:var(--suave); margin:10px 0 4px; }
+    input, select, textarea, button { font:inherit; padding:9px 11px; border-radius:8px; border:1px solid var(--borde); }
+    input, select, textarea { width:100%; }
+    button { background:var(--acento); color:#fff; border:none; cursor:pointer; }
+    button.secundario { background:#e5e7eb; color:var(--texto); }
+    button.peligro { background:var(--peligro); }
+    .fila { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:12px; }
+    table { width:100%; border-collapse:collapse; font-size:.92rem; }
+    th, td { text-align:left; padding:9px 6px; border-bottom:1px solid var(--borde); }
+    th { color:var(--suave); font-weight:600; }
+    .error { color:var(--peligro); margin-top:10px; font-size:.9rem; }
+    .oculto { display:none !important; }
+    .etiqueta { background:#eef2ff; color:var(--acento); padding:2px 8px; border-radius:99px; font-size:.8rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Pantalla de login -->
+  <section id="vista-login" class="oculto">
+    <main style="max-width:380px; margin-top:80px">
+      <div class="card">
+        <h2>Ingresar a StockMap</h2>
+        <form id="form-login">
+          <label for="email">Email</label>
+          <input id="email" type="email" required autocomplete="username" />
+          <label for="password">Contraseña</label>
+          <input id="password" type="password" required autocomplete="current-password" />
+          <p><button type="submit" style="width:100%; margin-top:14px">Entrar</button></p>
+        </form>
+        <p id="error-login" class="error oculto"></p>
+      </div>
+    </main>
+  </section>
+
+  <!-- Aplicación principal -->
+  <section id="vista-app" class="oculto">
+    <header>
+      <strong>StockMap</strong>
+      <div>
+        <span id="usuario-actual" class="etiqueta"></span>
+        <button id="btn-salir" class="secundario" style="margin-left:10px">Salir</button>
+      </div>
+    </header>
+
+    <main>
+      <div id="aviso" class="error oculto"></div>
+
+      <!-- Selector de cliente: solo visible para el admin general -->
+      <div id="bloque-cliente" class="card oculto">
+        <label for="selector-cliente">Cliente</label>
+        <select id="selector-cliente"></select>
+      </div>
+
+      <!-- Alta de contenedor -->
+      <div class="card">
+        <h2>Nuevo contenedor</h2>
+        <form id="form-contenedor">
+          <div class="fila">
+            <div>
+              <label for="codigo">Código / etiqueta</label>
+              <input id="codigo" required />
+            </div>
+            <div>
+              <label for="tipo">Tipo</label>
+              <select id="tipo">
+                <option value="caja">Caja</option>
+                <option value="bolsa">Bolsa</option>
+                <option value="pallet">Pallet</option>
+                <option value="tambor">Tambor</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label for="ubicacion">Ubicación</label>
+              <select id="ubicacion"></select>
+            </div>
+          </div>
+          <label for="descripcion">Descripción corta (sin detallar el contenido)</label>
+          <input id="descripcion" maxlength="120" />
+          <p><button type="submit" style="margin-top:14px">Guardar contenedor</button></p>
+        </form>
+      </div>
+
+      <!-- Alta de ubicación -->
+      <div class="card">
+        <h2>Nueva ubicación</h2>
+        <form id="form-ubicacion">
+          <div class="fila">
+            <div><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
+            <div><label for="estante">Estante</label><input id="estante" required /></div>
+            <div><label for="nivel">Nivel</label><input id="nivel" required /></div>
+          </div>
+          <p><button type="submit" class="secundario" style="margin-top:14px">Guardar ubicación</button></p>
+        </form>
+      </div>
+
+      <!-- Listado de contenedores -->
+      <div class="card">
+        <h2>Contenedores</h2>
+        <table>
+          <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
+          <tbody id="tabla-contenedores"></tbody>
+        </table>
+      </div>
+    </main>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

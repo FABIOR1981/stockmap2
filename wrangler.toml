@@ -1,0 +1,6 @@
+name = "stockmap"
+compatibility_date = "2026-10-01"
+
+# Sirve el frontend estático (index.html, app.js, config.js) desde Cloudflare.
+[assets]
+directory = "./"
