@@ -26,6 +26,13 @@ Archivos: `public/index.html` (estructura y estilos) y `public/app.js` (comporta
 - Campos: código, tipo, ubicación (opcional) y descripción corta.
 - Tabla: código, tipo, ubicación y descripción. Botón **Borrar** en cada fila, con confirmación.
 
+### Sección Plano
+
+- Dibuja el depósito con los pasillos como filas y los estantes como cuadros. Ver [plano-y-rutas.md](plano-y-rutas.md).
+- Al entrar desde el menú muestra todo el depósito, sin ruta.
+- Al entrar desde **Cómo llegar** de un contenedor, dibuja la ruta desde la entrada y resalta el estante destino, con los pasos a seguir.
+- Pasar el cursor sobre un estante muestra sus niveles y la cantidad de contenedores.
+
 ### Sección Ubicaciones
 
 - Botón **Nueva ubicación**: abre un panel con pasillo, estante y nivel.

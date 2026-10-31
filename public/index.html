@@ -113,6 +113,23 @@
       .menu .auxiliar { margin-top: auto; }
     }
 
+    .chico { height: 32px; padding: 0 10px; font-size: 0.88rem; }
+    .acciones-fila { display: inline-flex; align-items: center; gap: 6px; }
+    .muted { color: var(--tinta-suave); font-size: 0.88rem; }
+
+    .plano-destino { margin: 0 0 8px; font-weight: 600; }
+    .plano-pasos { margin: 0 0 16px; padding-left: 20px; color: var(--tinta-suave); }
+    .plano-pasos li { margin-bottom: 4px; }
+    .plano-svg {
+      overflow-x: auto;
+      border: 1px solid var(--linea);
+      border-radius: var(--radio-chico);
+      background: var(--superficie);
+      padding: 12px;
+    }
+    .plano-svg svg { display: block; max-width: none; }
+    .nota { color: var(--tinta-suave); font-size: 0.88rem; margin: 12px 0 0; }
+
     .contenido {
       padding: 28px 24px 56px;
       width: 100%;
@@ -377,6 +394,7 @@
       <nav class="menu" aria-label="Secciones">
         <button type="button" data-vista="contenedores" aria-current="page">Contenedores</button>
         <button type="button" data-vista="ubicaciones">Ubicaciones</button>
+        <button type="button" data-vista="plano">Plano</button>
         <!-- Solo para desarrollo: quitar antes de usar con clientes reales -->
         <button type="button" id="btn-datos-prueba" class="auxiliar">Cargar datos de prueba</button>
       </nav>
@@ -462,11 +480,25 @@
             </table>
           </div>
         </section>
+
+        <!-- Vista: plano del depósito -->
+        <section id="vista-plano" class="vista oculto">
+          <div class="cabecera-vista">
+            <h1>Plano del depósito</h1>
+          </div>
+          <div class="card">
+            <p id="plano-destino" class="plano-destino"></p>
+            <ol id="plano-pasos" class="plano-pasos"></ol>
+            <div id="plano-svg" class="plano-svg"></div>
+            <p id="plano-sin-posicion" class="nota"></p>
+          </div>
+        </section>
       </div>
     </div>
   </section>
 
   <script src="persistencia.js"></script>
+  <script src="plano.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

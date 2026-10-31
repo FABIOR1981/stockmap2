@@ -26,6 +26,14 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Menú lateral en lugar de tarjetas apiladas.** Una sección a la vez, con los formularios en paneles desplegables.
 
+## 2026-10-31 (tarde)
+
+**Plano automático por pasillo y número de estante.** El plano se deduce de pasillo, estante y nivel, sin guardar posiciones. Se eligió así para tener algo usable de inmediato. El plano manual queda pendiente.
+
+**Ruta por pasillo principal, sin buscar el camino más corto.** La ruta sigue siempre la forma entrada → pasillo principal → fila del pasillo → estante. Es simple y predecible; la ruta mínima queda para después.
+
+**Cálculo del plano en `plano.js`, fuera de la persistencia.** Es presentación derivada de los datos, así que no se agregó nada a la interfaz de persistencia.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).
