@@ -1,6 +1,12 @@
 name = "stockmap"
+main = "src/worker.js"
 compatibility_date = "2026-10-01"
 
-# Sirve el frontend estático (index.html, app.js, config.js) desde Cloudflare.
+# Frontend estático: solo se publica la carpeta public/.
 [assets]
-directory = "./"
+directory = "./public"
+binding = "ASSETS"
+
+# URL de Supabase (no es secreta). La clave anon va como secreto, NO aquí.
+[vars]
+SUPABASE_URL = "https://TU-PROYECTO.supabase.co"
