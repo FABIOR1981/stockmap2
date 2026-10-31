@@ -330,7 +330,7 @@ function dibujarPlano(plano, contenedores, destino) {
 // Vista de la estantería (de frente)
 // ---------------------------------------------------------------------
 
-// Dibuja una estantería de frente: columnas por estante, filas por división.
+// Dibuja una estantería de frente: filas por estante, columnas por división.
 // En la celda, el número es la cantidad de contenedores (· si está vacía).
 function dibujarEstanteria(nombre, destino = null) {
   if (!vistaPlano) return;
@@ -348,22 +348,22 @@ function dibujarEstanteria(nombre, destino = null) {
 
   const CELDA_X = 84;
   const CELDA_Y = 58;
-  const IZQ = 56;
-  const TOP = 46;
-  const X = (i) => IZQ + i * CELDA_X;
-  const Y = (j) => TOP + j * CELDA_Y;
-  const ancho = X(est.estantes.length) + 20;
-  const alto = TOP + est.divisiones.length * CELDA_Y + 20;
+  const IZQ = 96;
+  const TOP = 40;
+  const X = (j) => IZQ + j * CELDA_X; // columna = división
+  const Y = (i) => TOP + i * CELDA_Y; // fila = estante
+  const ancho = X(est.divisiones.length) + 20;
+  const alto = TOP + est.estantes.length * CELDA_Y + 20;
 
   const partes = [];
-  est.estantes.forEach((e, i) => {
-    partes.push(
-      `<text x="${X(i) + 36}" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4f5c69">Estante ${e}</text>`
-    );
-  });
   est.divisiones.forEach((d, j) => {
     partes.push(
-      `<text x="${IZQ - 14}" y="${Y(j) + 28}" text-anchor="end" font-size="13" font-weight="700" fill="#14202b">${escapar(d)}</text>`
+      `<text x="${X(j) + 36}" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#14202b">${escapar(d)}</text>`
+    );
+  });
+  est.estantes.forEach((e, i) => {
+    partes.push(
+      `<text x="${IZQ - 14}" y="${Y(i) + 28}" text-anchor="end" font-size="13" font-weight="600" fill="#4f5c69">Estante ${e}</text>`
     );
   });
   est.celdas.forEach((u) => {
@@ -376,8 +376,8 @@ function dibujarEstanteria(nombre, destino = null) {
     partes.push(
       `<g data-ubicacion="${u.id}" style="cursor:pointer">
         <title>${escapar(nombre)} · estante ${escapar(u.estante)} · división ${escapar(u.nivel)}</title>
-        <rect x="${X(i)}" y="${Y(j)}" width="72" height="46" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
-        <text x="${X(i) + 36}" y="${Y(j) + 28}" text-anchor="middle" font-size="13" font-weight="600" fill="${color}">${cant || "·"}</text>
+        <rect x="${X(j)}" y="${Y(i)}" width="72" height="46" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
+        <text x="${X(j) + 36}" y="${Y(i) + 28}" text-anchor="middle" font-size="13" font-weight="600" fill="${color}">${cant || "·"}</text>
       </g>`
     );
   });

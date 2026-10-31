@@ -132,7 +132,7 @@
     .card .subtitulo { font-size: 0.98rem; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.01em; }
     .plano-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
     @media (min-width: 1000px) {
-      .plano-doble { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
+      .plano-doble { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
     }
     .columna { min-width: 0; }
     .plano-svg g[data-pasillo]:hover rect,
@@ -500,13 +500,13 @@
             <ol id="plano-pasos" class="plano-pasos"></ol>
             <div class="plano-doble">
               <div class="columna">
+                <div id="plano-svg" class="plano-svg"></div>
+                <p id="plano-sin-posicion" class="nota"></p>
+              </div>
+              <div class="columna">
                 <h2 id="estanteria-titulo" class="subtitulo"></h2>
                 <div id="estanteria-svg" class="plano-svg"></div>
                 <p id="estanteria-detalle" class="nota"></p>
-              </div>
-              <div class="columna">
-                <div id="plano-svg" class="plano-svg"></div>
-                <p id="plano-sin-posicion" class="nota"></p>
               </div>
             </div>
           </div>
