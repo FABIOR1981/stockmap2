@@ -462,9 +462,9 @@
             <h2>Nueva ubicación</h2>
             <form id="form-ubicacion">
               <div class="campos">
-                <div class="campo"><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
-                <div class="campo"><label for="estante">Estante</label><input id="estante" required /></div>
-                <div class="campo"><label for="nivel">Nivel</label><input id="nivel" required /></div>
+                <div class="campo"><label for="pasillo">Estantería</label><input id="pasillo" required placeholder="A" /></div>
+                <div class="campo"><label for="estante">Estante</label><input id="estante" required placeholder="1" inputmode="numeric" /></div>
+                <div class="campo"><label for="nivel">División</label><input id="nivel" required placeholder="a" /></div>
               </div>
               <div class="acciones">
                 <button type="button" class="secundario" data-cerrar="panel-ubicacion">Cancelar</button>
@@ -475,7 +475,7 @@
 
           <div class="tabla-wrap">
             <table>
-              <thead><tr><th>Pasillo</th><th>Estante</th><th>Nivel</th><th></th></tr></thead>
+              <thead><tr><th>Estantería</th><th>Estante</th><th>División</th><th></th></tr></thead>
               <tbody id="tabla-ubicaciones"></tbody>
             </table>
           </div>

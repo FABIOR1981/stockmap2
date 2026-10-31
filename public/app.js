@@ -219,7 +219,7 @@ function dibujarPlano(plano, contenedores, destino) {
 
   // Texto de destino y pasos
   if (destino) {
-    let texto = `Destino: pasillo ${destino.pasillo}, estante ${destino.estante}, nivel ${destino.nivel}.`;
+    let texto = `Destino: estantería ${destino.pasillo}, estante ${destino.estante}, división ${destino.nivel}.`;
     if (!ruta) texto += " Esta ubicación no tiene posición en el plano.";
     $("#plano-destino").textContent = texto;
     $("#plano-pasos").innerHTML = ruta ? ruta.pasos.map((p) => `<li>${escapar(p)}</li>`).join("") : "";
@@ -281,7 +281,7 @@ function dibujarPlano(plano, contenedores, destino) {
     const colorTexto = esDestino ? "#ffffff" : "#14202b";
     partes.push(
       `<g>
-        <title>Pasillo ${escapar(u0.pasillo)} · estante ${escapar(u0.estante)} · niveles: ${escapar(niveles)}</title>
+        <title>Estantería ${escapar(u0.pasillo)} · estante ${escapar(u0.estante)} · divisiones: ${escapar(niveles)}</title>
         <rect x="${X(col) - 22}" y="${Y(fila) - 22}" width="44" height="44" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
         <text x="${X(col)}" y="${Y(fila) + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="${colorTexto}">${escapar(u0.estante)}</text>
       </g>`

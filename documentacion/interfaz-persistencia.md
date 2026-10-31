@@ -43,6 +43,8 @@ El admin general ve todos los clientes. Cualquier otro usuario ve solo el suyo.
 
 ### Ubicaciones
 
+Los campos de una ubicación son `pasillo` (estantería, letra mayúscula, por ejemplo `A`), `estante` (número, por ejemplo `1`) y `nivel` (división, letra minúscula, por ejemplo `a`). Los nombres de campo se mantienen por compatibilidad interna; en la interfaz se muestran como estantería, estante y división.
+
 | Función | Parámetros | Devuelve |
 |---|---|---|
 | `ubicaciones.listar(clienteId)` | id de cliente | `[{ id, clienteId, pasillo, estante, nivel }]`, ordenadas por pasillo, estante y nivel |

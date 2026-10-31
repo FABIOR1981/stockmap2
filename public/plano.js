@@ -37,8 +37,9 @@
       ],
       pasos: [
         "Entrá por la entrada del depósito.",
-        `Bajá por el pasillo principal hasta el pasillo ${ubicacion.pasillo}.`,
-        `Avanzá por el pasillo ${ubicacion.pasillo} hasta el estante ${ubicacion.estante}, nivel ${ubicacion.nivel}.`,
+        `Bajá por el pasillo principal hasta la estantería ${ubicacion.pasillo}.`,
+        `Avanzá por la estantería ${ubicacion.pasillo} hasta el estante ${ubicacion.estante}.`,
+        `Buscá la división ${ubicacion.nivel} de ese estante.`,
       ],
     };
   }

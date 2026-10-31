@@ -88,10 +88,11 @@
       }
     }
 
+    // Orden numérico real: el estante 10 va después del 2.
     const ordenUbicaciones = (a, b) =>
-      a.pasillo.localeCompare(b.pasillo) ||
-      a.estante.localeCompare(b.estante) ||
-      a.nivel.localeCompare(b.nivel);
+      a.pasillo.localeCompare(b.pasillo, "es", { numeric: true }) ||
+      a.estante.localeCompare(b.estante, "es", { numeric: true }) ||
+      a.nivel.localeCompare(b.nivel, "es", { numeric: true });
 
     const sesion = {
       async iniciar(email, password) {
@@ -143,10 +144,14 @@
 
       async crear(clienteId, { pasillo, estante, nivel }) {
         exigirAcceso(clienteId);
-        const p = (pasillo || "").trim();
+        // pasillo = estantería (letras mayúsculas), estante = número, nivel = división (letras minúsculas).
+        const p = (pasillo || "").trim().toUpperCase();
         const e = (estante || "").trim();
-        const n = (nivel || "").trim();
-        if (!p || !e || !n) throw fallo("Pasillo, estante y nivel son obligatorios.");
+        const n = (nivel || "").trim().toLowerCase();
+        if (!p || !e || !n) throw fallo("Estantería, estante y división son obligatorios.");
+        if (!/^[A-Z]+$/.test(p)) throw fallo("La estantería debe ser letra mayúscula, por ejemplo A.");
+        if (!/^\d+$/.test(e)) throw fallo("El estante debe ser un número, por ejemplo 1.");
+        if (!/^[a-z]+$/.test(n)) throw fallo("La división debe ser letra minúscula, por ejemplo a.");
 
         const repetida = datos.ubicaciones.some(
           (x) => x.clienteId === clienteId && x.pasillo === p && x.estante === e && x.nivel === n
@@ -225,11 +230,17 @@
       async cargar(clienteId) {
         exigirAcceso(clienteId);
 
+        // Tres estanterías (A, B, C), con estantes numerados y divisiones con letra minúscula.
         const ubicacionesPrueba = [
-          ["A", "1", "1"],
-          ["A", "1", "2"],
-          ["A", "2", "1"],
-          ["B", "1", "1"],
+          ["A", "1", "a"],
+          ["A", "1", "b"],
+          ["A", "2", "a"],
+          ["B", "1", "a"],
+          ["B", "1", "b"],
+          ["B", "2", "a"],
+          ["C", "1", "a"],
+          ["C", "2", "a"],
+          ["C", "2", "b"],
         ];
         let ubicacionesCreadas = 0;
         for (const [pasillo, estante, nivel] of ubicacionesPrueba) {
@@ -243,11 +254,12 @@
         }
 
         const contenedoresPrueba = [
-          { codigo: "CJ-0001", tipo: "caja", ubicacion: ["A", "1", "1"], descripcion: "Caja de prueba" },
-          { codigo: "CJ-0002", tipo: "caja", ubicacion: ["A", "1", "2"], descripcion: "Caja de prueba" },
-          { codigo: "BL-0003", tipo: "bolsa", ubicacion: ["A", "2", "1"], descripcion: "Bolsa de prueba" },
-          { codigo: "PL-0004", tipo: "pallet", ubicacion: ["B", "1", "1"], descripcion: "Pallet de prueba" },
-          { codigo: "TB-0005", tipo: "tambor", ubicacion: null, descripcion: "Tambor sin ubicación asignada" },
+          { codigo: "CJ-0001", tipo: "caja", ubicacion: ["A", "1", "a"], descripcion: "Caja de prueba" },
+          { codigo: "CJ-0002", tipo: "caja", ubicacion: ["A", "1", "b"], descripcion: "Caja de prueba" },
+          { codigo: "BL-0003", tipo: "bolsa", ubicacion: ["A", "2", "a"], descripcion: "Bolsa de prueba" },
+          { codigo: "PL-0004", tipo: "pallet", ubicacion: ["B", "1", "a"], descripcion: "Pallet de prueba" },
+          { codigo: "CJ-0005", tipo: "caja", ubicacion: ["C", "2", "b"], descripcion: "Caja de prueba" },
+          { codigo: "TB-0006", tipo: "tambor", ubicacion: null, descripcion: "Tambor sin ubicación asignada" },
         ];
         let contenedoresCreados = 0;
         for (const c of contenedoresPrueba) {

@@ -11,7 +11,13 @@ Estas reglas están implementadas en `public/persistencia.js`. Si cambia una reg
 
 ## Ubicaciones
 
-- **Pasillo, estante y nivel son obligatorios.** Se recortan los espacios al inicio y al final.
+- **Formato de cada parte de la ubicación:**
+  - **Estantería** (campo interno `pasillo`): letras mayúsculas, por ejemplo `A`, `B`, `C`.
+  - **Estante** (campo interno `estante`): número, por ejemplo `1`, `2`, `10`.
+  - **División** (campo interno `nivel`): letras minúsculas, por ejemplo `a`, `b`.
+  - Se recortan los espacios. La estantería y la división se normalizan a mayúsculas y minúsculas al guardar. Si el formato no coincide, el mensaje indica cuál es el correcto.
+- Las tres partes son obligatorias.
+- El orden de las ubicaciones es numérico en el estante: el 10 va después del 2.
 - No pueden repetirse dentro de un mismo cliente. La comparación es exacta, distingue mayúsculas. Mensaje: "Esa ubicación ya existe."
 - **No se puede borrar una ubicación que tiene contenedores.** Mensaje: "Hay contenedores en esa ubicación. Movelos antes de borrarla."
 - Las ubicaciones siempre pertenecen a un cliente.

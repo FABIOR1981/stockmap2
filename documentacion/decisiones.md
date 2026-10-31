@@ -34,6 +34,14 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Cálculo del plano en `plano.js`, fuera de la persistencia.** Es presentación derivada de los datos, así que no se agregó nada a la interfaz de persistencia.
 
+## 2026-10-31 (noche)
+
+**Formato de la ubicación: estantería, estante y división.** La estantería es una letra mayúscula (A, B, C), el estante es un número y la división es una letra minúscula. Los campos internos siguen llamándose `pasillo`, `estante` y `nivel` para no romper el código; cambia el nombre que ve el usuario y la validación.
+
+**Validación del formato al guardar.** Una ubicación que no respeta el formato se rechaza con un mensaje que indica el formato correcto. La estantería y la división se normalizan a mayúsculas y minúsculas.
+
+**Pruebas con tres estanterías.** Los datos de prueba usan las estanterías A, B y C.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).

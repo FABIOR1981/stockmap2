@@ -35,8 +35,8 @@ Archivos: `public/index.html` (estructura y estilos) y `public/app.js` (comporta
 
 ### Sección Ubicaciones
 
-- Botón **Nueva ubicación**: abre un panel con pasillo, estante y nivel.
-- Tabla: pasillo, estante y nivel. Botón **Borrar** en cada fila, con confirmación.
+- Botón **Nueva ubicación**: abre un panel con estantería (letra mayúscula), estante (número) y división (letra minúscula).
+- Tabla: estantería, estante y división. Botón **Borrar** en cada fila, con confirmación.
 
 ## Comportamiento
 
