@@ -217,12 +217,6 @@ function dibujarPlano(plano, contenedores, destino) {
   };
   const ruta = destino ? Plano.calcularRuta(plano, destino) : null;
 
-  // Cantidad de contenedores por ubicación
-  const cuentas = {};
-  contenedores.forEach((c) => {
-    if (c.ubicacionId) cuentas[c.ubicacionId] = (cuentas[c.ubicacionId] || 0) + 1;
-  });
-
   // Texto de destino y pasos
   if (destino) {
     let texto = `Destino: estantería ${destino.pasillo}, estante ${destino.estante}, división ${destino.nivel}.`;
@@ -251,9 +245,14 @@ function dibujarPlano(plano, contenedores, destino) {
   const partes = [];
 
   // Bandas de pasillo con su nombre
+  // Cada estantería es una franja tocable; la del destino se resalta.
   plano.pasillos.forEach((p, i) => {
+    const esDestino = destino && destino.pasillo === p;
     partes.push(
-      `<rect x="${X(0) - 22}" y="${TOP + i * PASO_Y + 8}" width="${bordeDerecho - (X(0) - 22)}" height="${PASO_Y - 16}" rx="8" fill="#f4f7f9" stroke="#e3e9ef"/>`
+      `<g data-pasillo="${escapar(p)}" style="cursor:pointer">
+        <title>Estantería ${escapar(p)}: tocá para ver sus estantes y divisiones</title>
+        <rect x="${X(0) - 22}" y="${TOP + i * PASO_Y + 8}" width="${bordeDerecho - (X(0) - 22)}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#e3e9ef"}" stroke-width="${esDestino ? 2 : 1}"/>
+      </g>`
     );
     partes.push(
       `<text x="${bordeDerecho + 10}" y="${Y(i) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(p)}</text>`
@@ -271,34 +270,7 @@ function dibujarPlano(plano, contenedores, destino) {
     );
   }
 
-  // Estantes, agrupados por pasillo y número (varios niveles en el mismo lugar)
-  const grupos = {};
-  plano.conPosicion.forEach((u) => {
-    const clave = `${u.pasillo}|${u.estante}`;
-    if (!grupos[clave]) grupos[clave] = [];
-    grupos[clave].push(u);
-  });
-  Object.values(grupos).forEach((lista) => {
-    const u0 = lista[0];
-    const fila = plano.pasillos.indexOf(u0.pasillo);
-    const col = parseInt(u0.estante, 10);
-    const esDestino = destino && destino.pasillo === u0.pasillo && destino.estante === u0.estante;
-    const cantidad = lista.reduce((s, u) => s + (cuentas[u.id] || 0), 0);
-    const niveles = lista
-      .map((u) => `${u.nivel}${cuentas[u.id] ? ` (${cuentas[u.id]})` : ""}`)
-      .join(", ");
-    const relleno = esDestino ? "#1f5f5b" : cantidad ? "#e2eeed" : "#ffffff";
-    const colorTexto = esDestino ? "#ffffff" : "#14202b";
-    partes.push(
-      `<g data-pasillo="${escapar(u0.pasillo)}" style="cursor:pointer">
-        <title>Estantería ${escapar(u0.pasillo)} · estante ${escapar(u0.estante)} · divisiones: ${escapar(niveles)}</title>
-        <rect x="${X(col) - 22}" y="${Y(fila) - 22}" width="44" height="44" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
-        <text x="${X(col)}" y="${Y(fila) + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="${colorTexto}">${escapar(u0.estante)}</text>
-      </g>`
-    );
-  });
-
-  // Ruta hasta el destino
+  // Ruta hasta la estantería destino (el detalle de estante y división está en la vista de frente)
   if (ruta) {
     const puntos = ruta.puntos.map((p) => `${X(p.x)},${Y(p.y)}`).join(" ");
     partes.push(

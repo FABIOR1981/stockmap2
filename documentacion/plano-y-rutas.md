@@ -18,9 +18,8 @@ Una ubicación completa se muestra como `A · 1 · a`.
 
 El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones: se deducen de la estantería y el estante.
 
-- **Estanterías = filas.** Se ordenan alfabéticamente: A, B, C...
-- **Estantes = columnas.** Se ubican según su número: el estante 1 es la primera columna, el 2 la siguiente, etc.
-- **Divisiones:** no tienen posición propia en el dibujo. Aparecen en el texto del destino y en el detalle de cada estante, al pasar el cursor.
+- **Estanterías = franjas horizontales.** Se ordenan alfabéticamente: A, B, C... Cada franja se puede tocar para abrir su vista de frente.
+- **Estantes y divisiones no se dibujan en el plano general.** El plano general solo muestra dónde está cada estantería; el detalle de estante y división está en la vista de frente.
 - **Pasillo principal:** corre por la columna 0, a la izquierda de todos los estantes.
 - **Entrada:** a la izquierda del depósito, a la altura del centro, de frente a las cabeceras de las estanterías (los extremos de cada fila).
 - **Pasillo principal:** corre por las cabeceras de las estanterías, a la izquierda de los estantes.
@@ -31,8 +30,8 @@ Este es un modelo simplificado. Si el depósito real no sigue esa forma, el plan
 
 Complementa el plano general con el detalle de una estantería:
 
-- **Columnas:** los estantes, numerados.
-- **Filas:** las divisiones, con su letra a la izquierda.
+- **Filas:** los estantes, numerados, a la izquierda.
+- **Columnas:** las divisiones, con su letra arriba.
 - **Celda:** el número indica cuántos contenedores hay; `·` significa vacía. La celda destino de una ruta se resalta en verde.
 - **Cómo se abre:** automáticamente al pedir "Cómo llegar" (muestra la estantería del destino), o tocando una estantería en el plano general.
 - **Detalle:** tocar una celda muestra los códigos de los contenedores que hay ahí.
@@ -46,18 +45,17 @@ Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto
 Para llegar a una ubicación con estantería `E`, estante `N` y división `d`:
 
 1. Entrar por la **entrada** (a la izquierda, de frente a las cabeceras).
-2. Recorrer el **pasillo principal** (columna 0) hasta la fila de la estantería `E`.
-3. Avanzar por esa fila hasta la columna del estante `N`.
-4. Buscar la división `d` de ese estante.
+2. Recorrer el **pasillo principal** (columna 0) hasta la franja de la estantería `E`.
 
-La ruta son tres puntos unidos por una línea. No se calcula un camino más corto: el recorrido sigue siempre esa forma.
+En el plano general la ruta termina en la franja de la estantería `E`. El estante `N` y la división `d` se ven en la **vista de frente** de esa estantería, con la celda destino resaltada.
+
+No se calcula un camino más corto: el recorrido sigue siempre esa forma.
 
 ## Pasos que se muestran
 
-- "Entrá por la entrada del depósito."
+- "Entrá por la entrada del depósito, de frente a las cabeceras de las estanterías."
 - "Recorré el pasillo principal hasta la estantería E."
-- "Avanzá por la estantería E hasta el estante N."
-- "Buscá la división d de ese estante."
+- "Buscá el estante N, división d, en la vista de frente de la estantería E."
 
 ## Cómo se llega a la vista
 
