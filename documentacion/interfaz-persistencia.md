@@ -71,7 +71,7 @@ Los campos de una ubicación son `pasillo` (estantería, letra mayúscula, por e
 |---|---|---|
 | `datosPrueba.cargar(clienteId)` | id de cliente | `{ ubicacionesCreadas, contenedoresCreados }` |
 
-Agrega 4 ubicaciones y 5 contenedores de ejemplo al cliente indicado. No duplica lo que ya exista, así que puede llamarse varias veces sin efectos extra. Lo usa el botón **Cargar datos de prueba** del menú.
+Agrega 60 ubicaciones (estanterías A a E, estantes 1 a 4, divisiones a, b y c) y 44 contenedores de ejemplo al cliente indicado: 40 ubicados y 4 sin ubicación. No duplica lo que ya exista, así que puede llamarse varias veces sin efectos extra. Lo usa el botón **Cargar datos de prueba** del menú.
 
 Si se cambia de almacenamiento, esta función puede quitarse o convertirse en un script de carga aparte.
 

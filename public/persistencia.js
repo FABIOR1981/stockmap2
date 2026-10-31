@@ -230,18 +230,16 @@
       async cargar(clienteId) {
         exigirAcceso(clienteId);
 
-        // Tres estanterías (A, B, C), con estantes numerados y divisiones con letra minúscula.
-        const ubicacionesPrueba = [
-          ["A", "1", "a"],
-          ["A", "1", "b"],
-          ["A", "2", "a"],
-          ["B", "1", "a"],
-          ["B", "1", "b"],
-          ["B", "2", "a"],
-          ["C", "1", "a"],
-          ["C", "2", "a"],
-          ["C", "2", "b"],
-        ];
+        // Cinco estanterías (A a E), cuatro estantes por estantería y tres divisiones por estante.
+        const ESTANTERIAS = ["A", "B", "C", "D", "E"];
+        const ESTANTES = [1, 2, 3, 4];
+        const DIVISIONES = ["a", "b", "c"];
+        const ubicacionesPrueba = [];
+        for (const p of ESTANTERIAS) {
+          for (const e of ESTANTES) {
+            for (const n of DIVISIONES) ubicacionesPrueba.push([p, String(e), n]);
+          }
+        }
         let ubicacionesCreadas = 0;
         for (const [pasillo, estante, nivel] of ubicacionesPrueba) {
           const existe = datos.ubicaciones.some(
@@ -253,14 +251,31 @@
           }
         }
 
-        const contenedoresPrueba = [
-          { codigo: "CJ-0001", tipo: "caja", ubicacion: ["A", "1", "a"], descripcion: "Caja de prueba" },
-          { codigo: "CJ-0002", tipo: "caja", ubicacion: ["A", "1", "b"], descripcion: "Caja de prueba" },
-          { codigo: "BL-0003", tipo: "bolsa", ubicacion: ["A", "2", "a"], descripcion: "Bolsa de prueba" },
-          { codigo: "PL-0004", tipo: "pallet", ubicacion: ["B", "1", "a"], descripcion: "Pallet de prueba" },
-          { codigo: "CJ-0005", tipo: "caja", ubicacion: ["C", "2", "b"], descripcion: "Caja de prueba" },
-          { codigo: "TB-0006", tipo: "tambor", ubicacion: null, descripcion: "Tambor sin ubicación asignada" },
-        ];
+        // Dos de cada tres ubicaciones tienen contenedor; luego se suman cuatro sin ubicación.
+        const TIPOS_PRUEBA = ["caja", "caja", "bolsa", "pallet", "tambor", "otro"];
+        const PREFIJO_PRUEBA = { caja: "CJ", bolsa: "BL", pallet: "PL", tambor: "TB", otro: "OT" };
+        const contenedoresPrueba = [];
+        let numero = 1;
+        ubicacionesPrueba.forEach(([p, e, n], i) => {
+          if (i % 3 === 2) return;
+          const tipo = TIPOS_PRUEBA[numero % TIPOS_PRUEBA.length];
+          contenedoresPrueba.push({
+            codigo: `${PREFIJO_PRUEBA[tipo]}-${String(numero).padStart(4, "0")}`,
+            tipo,
+            ubicacion: [p, e, n],
+            descripcion: "Contenedor de prueba",
+          });
+          numero++;
+        });
+        for (let k = 0; k < 4; k++) {
+          const tipo = TIPOS_PRUEBA[(numero + k) % TIPOS_PRUEBA.length];
+          contenedoresPrueba.push({
+            codigo: `${PREFIJO_PRUEBA[tipo]}-${String(numero + k).padStart(4, "0")}`,
+            tipo,
+            ubicacion: null,
+            descripcion: "Sin ubicación asignada (prueba)",
+          });
+        }
         let contenedoresCreados = 0;
         for (const c of contenedoresPrueba) {
           const existe = datos.contenedores.some(
