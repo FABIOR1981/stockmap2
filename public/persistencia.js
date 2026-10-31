@@ -251,13 +251,21 @@
           }
         }
 
-        // Dos de cada tres ubicaciones tienen contenedor; luego se suman cuatro sin ubicación.
+        // Aproximadamente dos de cada tres ubicaciones tienen contenedor, de forma
+        // pseudoaleatoria pero fija (mismo resultado en cada carga). Luego se suman cuatro sin ubicación.
+        const ocupadaPrueba = (i) => {
+          let x = Math.imul(i + 1, 2654435761) >>> 0;
+          x ^= x >>> 15;
+          x = Math.imul(x, 2246822519) >>> 0;
+          x ^= x >>> 13;
+          return x % 100 < 65;
+        };
         const TIPOS_PRUEBA = ["caja", "caja", "bolsa", "pallet", "tambor", "otro"];
         const PREFIJO_PRUEBA = { caja: "CJ", bolsa: "BL", pallet: "PL", tambor: "TB", otro: "OT" };
         const contenedoresPrueba = [];
         let numero = 1;
         ubicacionesPrueba.forEach(([p, e, n], i) => {
-          if (i % 3 === 2) return;
+          if (!ocupadaPrueba(i)) return;
           const tipo = TIPOS_PRUEBA[numero % TIPOS_PRUEBA.length];
           contenedoresPrueba.push({
             codigo: `${PREFIJO_PRUEBA[tipo]}-${String(numero).padStart(4, "0")}`,
