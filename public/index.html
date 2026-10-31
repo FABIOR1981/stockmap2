@@ -129,7 +129,12 @@
     }
     .plano-svg svg { display: block; max-width: none; }
     .nota { color: var(--tinta-suave); font-size: 0.88rem; margin: 12px 0 0; }
-    .card .subtitulo { font-size: 0.98rem; font-weight: 650; margin: 24px 0 10px; letter-spacing: -0.01em; }
+    .card .subtitulo { font-size: 0.98rem; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .plano-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+    @media (min-width: 1000px) {
+      .plano-doble { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
+    }
+    .columna { min-width: 0; }
     .plano-svg g[data-pasillo]:hover rect,
     .plano-svg g[data-ubicacion]:hover rect,
     #estanteria-svg g[data-ubicacion]:hover rect { stroke: var(--acento); stroke-width: 2; }
@@ -493,11 +498,17 @@
           <div class="card">
             <p id="plano-destino" class="plano-destino"></p>
             <ol id="plano-pasos" class="plano-pasos"></ol>
-            <div id="plano-svg" class="plano-svg"></div>
-            <h2 id="estanteria-titulo" class="subtitulo"></h2>
-            <div id="estanteria-svg" class="plano-svg"></div>
-            <p id="estanteria-detalle" class="nota"></p>
-            <p id="plano-sin-posicion" class="nota"></p>
+            <div class="plano-doble">
+              <div class="columna">
+                <h2 id="estanteria-titulo" class="subtitulo"></h2>
+                <div id="estanteria-svg" class="plano-svg"></div>
+                <p id="estanteria-detalle" class="nota"></p>
+              </div>
+              <div class="columna">
+                <div id="plano-svg" class="plano-svg"></div>
+                <p id="plano-sin-posicion" class="nota"></p>
+              </div>
+            </div>
           </div>
         </section>
       </div>
