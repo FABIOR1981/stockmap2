@@ -38,7 +38,19 @@ async function mostrarApp() {
   }
 
   await cargarTiposContenedor();
+  mostrarVista("contenedores");
   await cargarDatos();
+}
+
+// Muestra una sola sección del menú y marca el botón activo.
+function mostrarVista(nombre) {
+  document.querySelectorAll(".vista").forEach((v) => {
+    v.classList.toggle("oculto", v.id !== `vista-${nombre}`);
+  });
+  document.querySelectorAll(".menu button").forEach((b) => {
+    if (b.dataset.vista === nombre) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
 }
 
 // ---------------------------------------------------------------------
@@ -62,6 +74,32 @@ $("#btn-salir").addEventListener("click", async () => {
   await P.sesion.cerrar();
   location.reload();
 });
+
+// ---------------------------------------------------------------------
+// Menú y paneles desplegables
+// ---------------------------------------------------------------------
+
+$(".menu").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-vista]");
+  if (btn) mostrarVista(btn.dataset.vista);
+});
+
+document.addEventListener("click", (e) => {
+  const alternar = e.target.closest("[data-alternar]");
+  if (alternar) {
+    $(`#${alternar.dataset.alternar}`).classList.toggle("oculto");
+    return;
+  }
+  const cerrar = e.target.closest("[data-cerrar]");
+  if (cerrar) ocultarPanel(cerrar.dataset.cerrar);
+});
+
+function ocultarPanel(id) {
+  const panel = document.getElementById(id);
+  panel.classList.add("oculto");
+  const form = panel.querySelector("form");
+  if (form) form.reset();
+}
 
 // ---------------------------------------------------------------------
 // Selector de cliente (solo admin general)
@@ -100,10 +138,26 @@ async function cargarDatos() {
 async function cargarUbicaciones() {
   await intentar(async () => {
     const lista = await P.ubicaciones.listar(clienteActivo);
+
+    // Select del formulario de contenedores
     const opciones = lista.map(
       (u) => `<option value="${u.id}">${escapar(u.pasillo)} · ${escapar(u.estante)} · ${escapar(u.nivel)}</option>`
     );
     $("#ubicacion").innerHTML = `<option value="">Sin ubicación</option>` + opciones.join("");
+
+    // Tabla de la vista Ubicaciones
+    $("#tabla-ubicaciones").innerHTML =
+      lista
+        .map(
+          (u) => `
+          <tr>
+            <td><strong>${escapar(u.pasillo)}</strong></td>
+            <td>${escapar(u.estante)}</td>
+            <td>${escapar(u.nivel)}</td>
+            <td><button class="peligro" data-id="${u.id}" data-accion="borrar-ubicacion">Borrar</button></td>
+          </tr>`
+        )
+        .join("") || `<tr><td colspan="4">Todavía no hay ubicaciones.</td></tr>`;
   });
 }
 
@@ -141,7 +195,7 @@ $("#form-contenedor").addEventListener("submit", async (e) => {
       ubicacionId: $("#ubicacion").value || null,
       descripcion: $("#descripcion").value,
     });
-    e.target.reset();
+    ocultarPanel("panel-contenedor");
     await cargarContenedores();
   });
 });
@@ -154,7 +208,7 @@ $("#form-ubicacion").addEventListener("submit", async (e) => {
       estante: $("#estante").value,
       nivel: $("#nivel").value,
     });
-    e.target.reset();
+    ocultarPanel("panel-ubicacion");
     await cargarUbicaciones();
   });
 });
@@ -166,6 +220,16 @@ $("#tabla-contenedores").addEventListener("click", async (e) => {
   await intentar(async () => {
     await P.contenedores.borrar(btn.dataset.id);
     await cargarContenedores();
+  });
+});
+
+$("#tabla-ubicaciones").addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-accion='borrar-ubicacion']");
+  if (!btn) return;
+  if (!confirm("¿Borrar esta ubicación?")) return;
+  await intentar(async () => {
+    await P.ubicaciones.borrar(btn.dataset.id);
+    await cargarUbicaciones();
   });
 });
 

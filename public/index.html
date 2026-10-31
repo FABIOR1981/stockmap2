@@ -37,6 +37,8 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    .oculto { display: none !important; }
+
     /* ---------- Cabecera ---------- */
     header {
       position: sticky;
@@ -44,7 +46,7 @@
       z-index: 10;
       background: var(--superficie);
       border-bottom: 1px solid var(--linea);
-      padding: 0 24px;
+      padding: 0 20px;
       height: 60px;
       display: flex;
       justify-content: space-between;
@@ -61,15 +63,83 @@
     .marca svg { width: 22px; height: 22px; }
     .sesion { display: flex; align-items: center; gap: 12px; }
 
-    /* ---------- Contenedor principal ---------- */
-    main {
-      max-width: 1040px;
-      margin: 28px auto 48px;
-      padding: 0 20px;
+    /* ---------- Estructura de la app: menú + contenido ---------- */
+    .app {
+      display: grid;
+      grid-template-columns: 1fr;
+      min-height: calc(100vh - 60px);
     }
-    main.login { max-width: 380px; margin-top: 12vh; }
+    @media (min-width: 760px) {
+      .app { grid-template-columns: 220px 1fr; }
+    }
 
-    /* ---------- Tarjetas ---------- */
+    .menu {
+      background: var(--superficie);
+      border-bottom: 1px solid var(--linea);
+      padding: 8px 12px;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    @media (min-width: 760px) {
+      .menu {
+        flex-direction: column;
+        border-bottom: none;
+        border-right: 1px solid var(--linea);
+        padding: 20px 14px;
+      }
+    }
+    .menu button {
+      background: transparent;
+      color: var(--tinta-suave);
+      text-align: left;
+      font-weight: 600;
+      height: 40px;
+      padding: 0 12px;
+      white-space: nowrap;
+      width: auto;
+    }
+    @media (min-width: 760px) {
+      .menu button { width: 100%; }
+    }
+    .menu button:hover:not(:disabled) { background: #e9eef3; color: var(--tinta); }
+    .menu button[aria-current="page"] { background: var(--acento-suave); color: var(--acento); }
+
+    .contenido {
+      padding: 28px 24px 56px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* ---------- Vistas ---------- */
+    .cabecera-vista {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .cabecera-vista h1 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .barra-cliente { margin-bottom: 20px; max-width: 360px; }
+
+    .aviso {
+      background: var(--aviso-fondo);
+      color: var(--aviso-tinta);
+      border: 1px solid #ead7a4;
+      border-radius: var(--radio-chico);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+    }
+
+    /* ---------- Tarjetas y paneles ---------- */
     .card {
       background: var(--superficie);
       border: 1px solid var(--linea);
@@ -83,15 +153,6 @@
       font-weight: 650;
       letter-spacing: -0.01em;
     }
-    .grilla-dos {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-    @media (min-width: 760px) {
-      .grilla-dos { grid-template-columns: 1fr 1fr; }
-    }
-    .grilla-dos .card { margin-bottom: 0; }
 
     /* ---------- Formularios ---------- */
     .campos {
@@ -121,14 +182,19 @@
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     input::placeholder { color: #8a867c; }
-    input:hover, select:hover { border-color: #aaa496; }
+    input:hover, select:hover { border-color: #9aa8b6; }
     input:focus, select:focus {
       outline: none;
       border-color: var(--acento);
       box-shadow: 0 0 0 3px var(--foco);
     }
 
-    .acciones { margin-top: 18px; display: flex; justify-content: flex-end; }
+    .acciones {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
 
     /* ---------- Botones ---------- */
     button {
@@ -144,10 +210,7 @@
     button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--foco); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .primario {
-      background: var(--acento);
-      color: #fff;
-    }
+    .primario { background: var(--acento); color: #fff; }
     .primario:hover:not(:disabled) { background: var(--acento-hover); }
     .primario:active:not(:disabled) { background: #123a38; }
 
@@ -170,7 +233,12 @@
     .ancho-completo { width: 100%; }
 
     /* ---------- Tabla ---------- */
-    .tabla-contenedor { overflow-x: auto; margin: 0 -24px; }
+    .tabla-wrap {
+      background: var(--superficie);
+      border: 1px solid var(--linea);
+      border-radius: var(--radio);
+      overflow-x: auto;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -178,7 +246,7 @@
     }
     th, td {
       text-align: left;
-      padding: 12px 24px;
+      padding: 12px 20px;
       border-bottom: 1px solid var(--linea);
       vertical-align: middle;
       white-space: nowrap;
@@ -194,16 +262,15 @@
     tbody tr:last-child td { border-bottom: none; }
     td strong { font-weight: 650; font-variant-numeric: tabular-nums; }
     td:last-child, th:last-child { text-align: right; width: 1%; }
-    td.vacio,
     td[colspan] {
       text-align: center;
       width: auto;
       color: var(--tinta-suave);
-      padding: 28px 24px;
+      padding: 28px 20px;
       white-space: normal;
     }
 
-    /* ---------- Etiquetas y avisos ---------- */
+    /* ---------- Etiquetas y errores ---------- */
     .etiqueta {
       display: inline-block;
       background: var(--acento-suave);
@@ -212,16 +279,6 @@
       border-radius: 999px;
       font-size: 0.8rem;
       font-weight: 600;
-    }
-
-    .aviso {
-      background: var(--aviso-fondo);
-      color: var(--aviso-tinta);
-      border: 1px solid #ead7a4;
-      border-radius: var(--radio-chico);
-      padding: 12px 16px;
-      margin-bottom: 20px;
-      font-size: 0.92rem;
     }
 
     .error {
@@ -233,11 +290,12 @@
       font-size: 0.9rem;
     }
 
-    .oculto { display: none !important; }
-
     /* ---------- Login ---------- */
-    #vista-login {
-      min-height: 100vh;
+    #vista-login { min-height: 100vh; }
+    main.login {
+      max-width: 380px;
+      margin: 12vh auto 0;
+      padding: 0 20px;
     }
     .login-titulo {
       margin: 0 0 4px;
@@ -254,7 +312,6 @@
     #form-login label:first-of-type { margin-top: 0; }
     #form-login .primario { margin-top: 20px; }
 
-    /* ---------- Movimiento respetuoso ---------- */
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; }
     }
@@ -305,73 +362,96 @@
       </div>
     </header>
 
-    <main>
-      <div id="aviso" class="aviso oculto"></div>
+    <div class="app">
+      <!-- Menú de secciones -->
+      <nav class="menu" aria-label="Secciones">
+        <button type="button" data-vista="contenedores" aria-current="page">Contenedores</button>
+        <button type="button" data-vista="ubicaciones">Ubicaciones</button>
+      </nav>
 
-      <!-- Selector de cliente: solo visible para el admin general -->
-      <div id="bloque-cliente" class="card oculto">
-        <div class="campo">
+      <div class="contenido">
+        <div id="aviso" class="aviso oculto"></div>
+
+        <!-- Selector de cliente: solo visible para el admin general -->
+        <div id="bloque-cliente" class="oculto barra-cliente">
           <label for="selector-cliente">Cliente</label>
           <select id="selector-cliente"></select>
         </div>
-      </div>
 
-      <div class="grilla-dos">
-        <!-- Alta de contenedor -->
-        <div class="card">
-          <h2>Nuevo contenedor</h2>
-          <form id="form-contenedor">
-            <div class="campos">
-              <div class="campo">
-                <label for="codigo">Código / etiqueta</label>
-                <input id="codigo" required />
-              </div>
-              <div class="campo">
-                <label for="tipo">Tipo</label>
-                <select id="tipo"></select>
-              </div>
-              <div class="campo">
-                <label for="ubicacion">Ubicación</label>
-                <select id="ubicacion"></select>
-              </div>
-              <div class="campo ancho">
-                <label for="descripcion">Descripción corta (sin detallar el contenido)</label>
-                <input id="descripcion" maxlength="120" />
-              </div>
-            </div>
-            <div class="acciones">
-              <button type="submit" class="primario">Guardar contenedor</button>
-            </div>
-          </form>
-        </div>
+        <!-- Vista: contenedores -->
+        <section id="vista-contenedores" class="vista">
+          <div class="cabecera-vista">
+            <h1>Contenedores</h1>
+            <button type="button" class="primario" data-alternar="panel-contenedor">Nuevo contenedor</button>
+          </div>
 
-        <!-- Alta de ubicación -->
-        <div class="card">
-          <h2>Nueva ubicación</h2>
-          <form id="form-ubicacion">
-            <div class="campos">
-              <div class="campo"><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
-              <div class="campo"><label for="estante">Estante</label><input id="estante" required /></div>
-              <div class="campo"><label for="nivel">Nivel</label><input id="nivel" required /></div>
-            </div>
-            <div class="acciones">
-              <button type="submit" class="secundario">Guardar ubicación</button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <div id="panel-contenedor" class="card oculto">
+            <h2>Nuevo contenedor</h2>
+            <form id="form-contenedor">
+              <div class="campos">
+                <div class="campo">
+                  <label for="codigo">Código / etiqueta</label>
+                  <input id="codigo" required />
+                </div>
+                <div class="campo">
+                  <label for="tipo">Tipo</label>
+                  <select id="tipo"></select>
+                </div>
+                <div class="campo">
+                  <label for="ubicacion">Ubicación</label>
+                  <select id="ubicacion"></select>
+                </div>
+                <div class="campo ancho">
+                  <label for="descripcion">Descripción corta (sin detallar el contenido)</label>
+                  <input id="descripcion" maxlength="120" />
+                </div>
+              </div>
+              <div class="acciones">
+                <button type="button" class="secundario" data-cerrar="panel-contenedor">Cancelar</button>
+                <button type="submit" class="primario">Guardar contenedor</button>
+              </div>
+            </form>
+          </div>
 
-      <!-- Listado de contenedores -->
-      <div class="card" style="margin-top:20px; padding-bottom:0">
-        <h2>Contenedores</h2>
-        <div class="tabla-contenedor">
-          <table>
-            <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
-            <tbody id="tabla-contenedores"></tbody>
-          </table>
-        </div>
+          <div class="tabla-wrap">
+            <table>
+              <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
+              <tbody id="tabla-contenedores"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Vista: ubicaciones -->
+        <section id="vista-ubicaciones" class="vista oculto">
+          <div class="cabecera-vista">
+            <h1>Ubicaciones</h1>
+            <button type="button" class="primario" data-alternar="panel-ubicacion">Nueva ubicación</button>
+          </div>
+
+          <div id="panel-ubicacion" class="card oculto">
+            <h2>Nueva ubicación</h2>
+            <form id="form-ubicacion">
+              <div class="campos">
+                <div class="campo"><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
+                <div class="campo"><label for="estante">Estante</label><input id="estante" required /></div>
+                <div class="campo"><label for="nivel">Nivel</label><input id="nivel" required /></div>
+              </div>
+              <div class="acciones">
+                <button type="button" class="secundario" data-cerrar="panel-ubicacion">Cancelar</button>
+                <button type="submit" class="primario">Guardar ubicación</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="tabla-wrap">
+            <table>
+              <thead><tr><th>Pasillo</th><th>Estante</th><th>Nivel</th><th></th></tr></thead>
+              <tbody id="tabla-ubicaciones"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
-    </main>
+    </div>
   </section>
 
   <script src="persistencia.js"></script>
