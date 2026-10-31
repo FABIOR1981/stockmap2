@@ -27,6 +27,16 @@ El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones:
 
 Este es un modelo simplificado. Si el depósito real no sigue esa forma, el plano automático no lo refleja fielmente. Ver "Pendiente".
 
+## Vista de la estantería (de frente)
+
+Complementa el plano general con el detalle de una estantería:
+
+- **Columnas:** los estantes, numerados.
+- **Filas:** las divisiones, con su letra a la izquierda.
+- **Celda:** el número indica cuántos contenedores hay; `·` significa vacía. La celda destino de una ruta se resalta en verde.
+- **Cómo se abre:** automáticamente al pedir "Cómo llegar" (muestra la estantería del destino), o tocando una estantería en el plano general.
+- **Detalle:** tocar una celda muestra los códigos de los contenedores que hay ahí.
+
 ## Estantes sin posición
 
 Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto no debería pasar con el formato obligatorio, pero puede ocurrir con datos cargados antes de esa validación. Se lista debajo del dibujo y no se puede llegar a ella con una ruta.

@@ -46,5 +46,16 @@
     };
   }
 
-  window.Plano = { construirPlano, calcularRuta };
+  // Vista de frente de una estantería: estantes (columnas) y divisiones (filas).
+  function construirEstanteria(ubicaciones, estanteria) {
+    const propias = ubicaciones.filter((u) => u.pasillo === estanteria);
+    const estantes = [...new Set(propias.filter((u) => esNumero(u.estante)).map((u) => parseInt(u.estante, 10)))].sort(
+      (a, b) => a - b
+    );
+    const divisiones = [...new Set(propias.map((u) => u.nivel))].sort((a, b) => a.localeCompare(b, "es"));
+    const celdas = propias.filter((u) => esNumero(u.estante));
+    return { estanteria, estantes, divisiones, celdas };
+  }
+
+  window.Plano = { construirPlano, calcularRuta, construirEstanteria };
 })();

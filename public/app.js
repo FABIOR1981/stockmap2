@@ -5,6 +5,7 @@ const $ = (sel) => document.querySelector(sel);
 
 let perfil = null;
 let clienteActivo = null;
+let vistaPlano = null; // datos del último plano dibujado, para la vista de estantería
 
 // ---------------------------------------------------------------------
 // Arranque, sesión y vistas
@@ -209,6 +210,11 @@ async function verPlano(destinoId) {
 }
 
 function dibujarPlano(plano, contenedores, destino) {
+  vistaPlano = {
+    ubicaciones: [...plano.conPosicion, ...plano.sinPosicion],
+    contenedores,
+    destino,
+  };
   const ruta = destino ? Plano.calcularRuta(plano, destino) : null;
 
   // Cantidad de contenedores por ubicación
@@ -284,7 +290,7 @@ function dibujarPlano(plano, contenedores, destino) {
     const relleno = esDestino ? "#1f5f5b" : cantidad ? "#e2eeed" : "#ffffff";
     const colorTexto = esDestino ? "#ffffff" : "#14202b";
     partes.push(
-      `<g>
+      `<g data-pasillo="${escapar(u0.pasillo)}" style="cursor:pointer">
         <title>Estantería ${escapar(u0.pasillo)} · estante ${escapar(u0.estante)} · divisiones: ${escapar(niveles)}</title>
         <rect x="${X(col) - 22}" y="${Y(fila) - 22}" width="44" height="44" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
         <text x="${X(col)}" y="${Y(fila) + 5}" text-anchor="middle" font-size="13" font-weight="600" fill="${colorTexto}">${escapar(u0.estante)}</text>
@@ -304,12 +310,100 @@ function dibujarPlano(plano, contenedores, destino) {
   $("#plano-svg").innerHTML =
     `<svg viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" role="img" aria-label="Plano del depósito">${partes.join("")}</svg>`;
 
+  if (destino) {
+    dibujarEstanteria(destino.pasillo, destino);
+  } else {
+    $("#estanteria-titulo").textContent = "";
+    $("#estanteria-svg").innerHTML = "";
+    $("#estanteria-detalle").textContent =
+      "Tocá una estantería del plano para ver sus estantes y divisiones.";
+  }
+
   $("#plano-sin-posicion").textContent = plano.sinPosicion.length
     ? `Sin posición en el plano (el estante no es numérico): ${plano.sinPosicion
         .map((u) => `${u.pasillo} · ${u.estante} · ${u.nivel}`)
         .join(" | ")}`
     : "";
 }
+
+// ---------------------------------------------------------------------
+// Vista de la estantería (de frente)
+// ---------------------------------------------------------------------
+
+// Dibuja una estantería de frente: columnas por estante, filas por división.
+// En la celda, el número es la cantidad de contenedores (· si está vacía).
+function dibujarEstanteria(nombre, destino = null) {
+  if (!vistaPlano) return;
+  const { ubicaciones, contenedores } = vistaPlano;
+  const est = Plano.construirEstanteria(ubicaciones, nombre);
+
+  const cantidadPorUbicacion = {};
+  contenedores.forEach((c) => {
+    if (c.ubicacionId) cantidadPorUbicacion[c.ubicacionId] = (cantidadPorUbicacion[c.ubicacionId] || 0) + 1;
+  });
+
+  $("#estanteria-titulo").textContent = `Estantería ${nombre} · vista de frente`;
+  $("#estanteria-detalle").textContent =
+    "Tocá una celda para ver sus contenedores. El número indica cuántos hay; · significa que está vacía.";
+
+  const CELDA_X = 84;
+  const CELDA_Y = 58;
+  const IZQ = 56;
+  const TOP = 46;
+  const X = (i) => IZQ + i * CELDA_X;
+  const Y = (j) => TOP + j * CELDA_Y;
+  const ancho = X(est.estantes.length) + 20;
+  const alto = TOP + est.divisiones.length * CELDA_Y + 20;
+
+  const partes = [];
+  est.estantes.forEach((e, i) => {
+    partes.push(
+      `<text x="${X(i) + 36}" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4f5c69">Estante ${e}</text>`
+    );
+  });
+  est.divisiones.forEach((d, j) => {
+    partes.push(
+      `<text x="${IZQ - 14}" y="${Y(j) + 28}" text-anchor="end" font-size="13" font-weight="700" fill="#14202b">${escapar(d)}</text>`
+    );
+  });
+  est.celdas.forEach((u) => {
+    const i = est.estantes.indexOf(parseInt(u.estante, 10));
+    const j = est.divisiones.indexOf(u.nivel);
+    const cant = cantidadPorUbicacion[u.id] || 0;
+    const esDestino = destino && destino.id === u.id;
+    const relleno = esDestino ? "#1f5f5b" : cant ? "#e2eeed" : "#ffffff";
+    const color = esDestino ? "#ffffff" : "#14202b";
+    partes.push(
+      `<g data-ubicacion="${u.id}" style="cursor:pointer">
+        <title>${escapar(nombre)} · estante ${escapar(u.estante)} · división ${escapar(u.nivel)}</title>
+        <rect x="${X(i)}" y="${Y(j)}" width="72" height="46" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
+        <text x="${X(i) + 36}" y="${Y(j) + 28}" text-anchor="middle" font-size="13" font-weight="600" fill="${color}">${cant || "·"}</text>
+      </g>`
+    );
+  });
+
+  $("#estanteria-svg").innerHTML =
+    `<svg viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" role="img" aria-label="Vista de frente de la estantería ${escapar(nombre)}">${partes.join("")}</svg>`;
+}
+
+// Tocar una estantería del plano general abre su vista de frente.
+$("#plano-svg").addEventListener("click", (e) => {
+  const g = e.target.closest("g[data-pasillo]");
+  if (g && vistaPlano) dibujarEstanteria(g.dataset.pasillo, vistaPlano.destino);
+});
+
+// Tocar una celda muestra los contenedores de esa ubicación.
+$("#estanteria-svg").addEventListener("click", (e) => {
+  const g = e.target.closest("g[data-ubicacion]");
+  if (!g || !vistaPlano) return;
+  const u = vistaPlano.ubicaciones.find((x) => x.id === g.dataset.ubicacion);
+  if (!u) return;
+  const codigos = vistaPlano.contenedores
+    .filter((c) => c.ubicacionId === u.id)
+    .map((c) => `${c.codigo} (${capitalizar(c.tipo)})`);
+  $("#estanteria-detalle").textContent =
+    `${u.pasillo} · ${u.estante} · ${u.nivel}: ${codigos.length ? codigos.join(", ") : "sin contenedores"}`;
+});
 
 // ---------------------------------------------------------------------
 // Altas y bajas

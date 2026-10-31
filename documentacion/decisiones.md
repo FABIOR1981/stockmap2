@@ -42,6 +42,10 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Pruebas con tres estanterías.** Los datos de prueba usan las estanterías A, B y C.
 
+## 2026-10-31 (vista de estantería)
+
+**Plano general más vista de frente por estantería.** El plano general muestra dónde está cada estantería, pero no alcanza para ubicar estante y división. Se agregó una vista de frente de la estantería (columnas: estantes; filas: divisiones), que se abre con "Cómo llegar" o tocando una estantería.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).
