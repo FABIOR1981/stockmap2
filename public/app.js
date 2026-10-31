@@ -1,21 +1,18 @@
-// StockMap · Frontend (vanilla JS + Supabase)
-// La seguridad no depende de este archivo: las políticas RLS de la base hacen el aislamiento real.
+// StockMap · Frontend. Solo usa window.Persistencia (ver persistencia.js).
 
-const cfg = window.STOCKMAP_CONFIG;
-const sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-
+const P = window.Persistencia;
 const $ = (sel) => document.querySelector(sel);
 
-let perfil = null;          // fila de la tabla perfiles del usuario logueado
-let clienteActivo = null;   // cliente sobre el que se está trabajando
+let perfil = null;
+let clienteActivo = null;
 
 // ---------------------------------------------------------------------
-// Arranque y sesión
+// Arranque, sesión y vistas
 // ---------------------------------------------------------------------
 
 async function iniciar() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) await mostrarApp();
+  perfil = await P.sesion.actual();
+  if (perfil) await mostrarApp();
   else mostrarLogin();
 }
 
@@ -25,24 +22,22 @@ function mostrarLogin() {
 }
 
 async function mostrarApp() {
-  const { data, error } = await sb.from("perfiles").select("*").maybeSingle();
-  if (error || !data) {
-    mostrarAviso("Tu usuario no tiene perfil asignado. Contactá al administrador.");
-    await sb.auth.signOut();
-    return mostrarLogin();
-  }
-  perfil = data;
-
   $("#vista-login").classList.add("oculto");
   $("#vista-app").classList.remove("oculto");
-  $("#usuario-actual").textContent = perfil.nombre || "Usuario";
+  $("#usuario-actual").textContent = perfil.nombre;
 
-  if (perfil.es_admin_general) {
+  if (!perfil.accesoActivo) {
+    mostrarAviso("La suscripción de este cliente no está activa. Solo podés consultar.");
+  }
+
+  if (perfil.esAdminGeneral) {
     $("#bloque-cliente").classList.remove("oculto");
     await cargarSelectorClientes();
   } else {
-    clienteActivo = perfil.cliente_id;
+    clienteActivo = perfil.clienteId;
   }
+
+  await cargarTiposContenedor();
   await cargarDatos();
 }
 
@@ -52,38 +47,45 @@ async function mostrarApp() {
 
 $("#form-login").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const { error } = await sb.auth.signInWithPassword({
-    email: $("#email").value.trim(),
-    password: $("#password").value,
-  });
-  if (error) {
+  const p = await P.sesion.iniciar($("#email").value, $("#password").value);
+  if (!p) {
     $("#error-login").textContent = "Email o contraseña incorrectos.";
     $("#error-login").classList.remove("oculto");
     return;
   }
   $("#error-login").classList.add("oculto");
+  perfil = p;
   await mostrarApp();
 });
 
 $("#btn-salir").addEventListener("click", async () => {
-  await sb.auth.signOut();
+  await P.sesion.cerrar();
   location.reload();
 });
 
 // ---------------------------------------------------------------------
-// Admin general: selector de cliente
+// Selector de cliente (solo admin general)
 // ---------------------------------------------------------------------
 
 async function cargarSelectorClientes() {
-  const { data, error } = await sb.from("clientes").select("id, nombre").order("nombre");
-  if (error) return mostrarAviso("No se pudieron cargar los clientes.");
-  const selector = $("#selector-cliente");
-  selector.innerHTML = data.map((c) => `<option value="${c.id}">${escapar(c.nombre)}</option>`).join("");
-  clienteActivo = data[0]?.id ?? null;
-  selector.onchange = async () => {
-    clienteActivo = selector.value;
-    await cargarDatos();
-  };
+  await intentar(async () => {
+    const lista = await P.clientes.listar();
+    const selector = $("#selector-cliente");
+    selector.innerHTML = lista
+      .map((c) => `<option value="${c.id}">${escapar(c.nombre)}${c.accesoActivo ? "" : " (sin acceso)"}</option>`)
+      .join("");
+    clienteActivo = lista[0]?.id ?? null;
+    selector.onchange = async () => {
+      clienteActivo = selector.value;
+      await cargarDatos();
+    };
+  });
+}
+
+async function cargarTiposContenedor() {
+  $("#tipo").innerHTML = P.tiposContenedor
+    .map((t) => `<option value="${t}">${capitalizar(t)}</option>`)
+    .join("");
 }
 
 // ---------------------------------------------------------------------
@@ -96,39 +98,34 @@ async function cargarDatos() {
 }
 
 async function cargarUbicaciones() {
-  const { data, error } = await sb
-    .from("ubicaciones")
-    .select("id, pasillo, estante, nivel")
-    .eq("cliente_id", clienteActivo)
-    .order("pasillo").order("estante").order("nivel");
-  if (error) return mostrarAviso("Error al cargar ubicaciones: " + error.message);
-
-  const opciones = data.map((u) =>
-    `<option value="${u.id}">${escapar(u.pasillo)} · ${escapar(u.estante)} · ${escapar(u.nivel)}</option>`
-  );
-  $("#ubicacion").innerHTML = `<option value="">Sin ubicación</option>` + opciones.join("");
+  await intentar(async () => {
+    const lista = await P.ubicaciones.listar(clienteActivo);
+    const opciones = lista.map(
+      (u) => `<option value="${u.id}">${escapar(u.pasillo)} · ${escapar(u.estante)} · ${escapar(u.nivel)}</option>`
+    );
+    $("#ubicacion").innerHTML = `<option value="">Sin ubicación</option>` + opciones.join("");
+  });
 }
 
 async function cargarContenedores() {
-  const { data, error } = await sb
-    .from("contenedores")
-    .select("id, codigo, tipo, descripcion, ubicaciones(pasillo, estante, nivel)")
-    .eq("cliente_id", clienteActivo)
-    .order("codigo");
-  if (error) return mostrarAviso("Error al cargar contenedores: " + error.message);
-
-  $("#tabla-contenedores").innerHTML = data.map((c) => {
-    const u = c.ubicaciones;
-    const ubic = u ? `${u.pasillo} · ${u.estante} · ${u.nivel}` : "—";
-    return `
-      <tr>
-        <td><strong>${escapar(c.codigo)}</strong></td>
-        <td>${escapar(c.tipo)}</td>
-        <td>${escapar(ubic)}</td>
-        <td>${escapar(c.descripcion || "")}</td>
-        <td><button class="peligro" data-id="${c.id}" data-accion="borrar">Borrar</button></td>
-      </tr>`;
-  }).join("") || `<tr><td colspan="5">Todavía no hay contenedores.</td></tr>`;
+  await intentar(async () => {
+    const lista = await P.contenedores.listar(clienteActivo);
+    $("#tabla-contenedores").innerHTML =
+      lista
+        .map((c) => {
+          const u = c.ubicacion;
+          const ubic = u ? `${u.pasillo} · ${u.estante} · ${u.nivel}` : "—";
+          return `
+          <tr>
+            <td><strong>${escapar(c.codigo)}</strong></td>
+            <td>${escapar(capitalizar(c.tipo))}</td>
+            <td>${escapar(ubic)}</td>
+            <td>${escapar(c.descripcion || "")}</td>
+            <td><button class="peligro" data-id="${c.id}" data-accion="borrar">Borrar</button></td>
+          </tr>`;
+        })
+        .join("") || `<tr><td colspan="5">Todavía no hay contenedores.</td></tr>`;
+  });
 }
 
 // ---------------------------------------------------------------------
@@ -137,50 +134,63 @@ async function cargarContenedores() {
 
 $("#form-contenedor").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const fila = {
-    cliente_id: clienteActivo,
-    codigo: $("#codigo").value.trim(),
-    tipo: $("#tipo").value,
-    ubicacion_id: $("#ubicacion").value || null,
-    descripcion: $("#descripcion").value.trim() || null,
-  };
-  const { error } = await sb.from("contenedores").insert(fila);
-  if (error) return mostrarAviso("No se pudo guardar: " + error.message);
-  e.target.reset();
-  await cargarContenedores();
+  await intentar(async () => {
+    await P.contenedores.crear(clienteActivo, {
+      codigo: $("#codigo").value,
+      tipo: $("#tipo").value,
+      ubicacionId: $("#ubicacion").value || null,
+      descripcion: $("#descripcion").value,
+    });
+    e.target.reset();
+    await cargarContenedores();
+  });
 });
 
 $("#form-ubicacion").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const fila = {
-    cliente_id: clienteActivo,
-    pasillo: $("#pasillo").value.trim(),
-    estante: $("#estante").value.trim(),
-    nivel: $("#nivel").value.trim(),
-  };
-  const { error } = await sb.from("ubicaciones").insert(fila);
-  if (error) return mostrarAviso("No se pudo guardar la ubicación: " + error.message);
-  e.target.reset();
-  await cargarUbicaciones();
+  await intentar(async () => {
+    await P.ubicaciones.crear(clienteActivo, {
+      pasillo: $("#pasillo").value,
+      estante: $("#estante").value,
+      nivel: $("#nivel").value,
+    });
+    e.target.reset();
+    await cargarUbicaciones();
+  });
 });
 
 $("#tabla-contenedores").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-accion='borrar']");
   if (!btn) return;
   if (!confirm("¿Borrar este contenedor del registro?")) return;
-  const { error } = await sb.from("contenedores").delete().eq("id", btn.dataset.id);
-  if (error) return mostrarAviso("No se pudo borrar: " + error.message);
-  await cargarContenedores();
+  await intentar(async () => {
+    await P.contenedores.borrar(btn.dataset.id);
+    await cargarContenedores();
+  });
 });
 
 // ---------------------------------------------------------------------
 // Utilidades
 // ---------------------------------------------------------------------
 
+// Ejecuta una acción y muestra cualquier error de negocio al usuario.
+async function intentar(accion) {
+  try {
+    mostrarAviso("");
+    return await accion();
+  } catch (err) {
+    mostrarAviso(err.message);
+  }
+}
+
 function mostrarAviso(texto) {
   const el = $("#aviso");
   el.textContent = texto;
-  el.classList.remove("oculto");
+  el.classList.toggle("oculto", !texto);
+}
+
+function capitalizar(texto) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function escapar(valor) {

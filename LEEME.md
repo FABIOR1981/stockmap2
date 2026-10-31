@@ -1,79 +1,56 @@
-# StockMap · Control de depósito (versión 1)
+# StockMap · Control de depósito (versión 1, en memoria)
 
 Aplicación multi-cliente para registrar contenedores (cajas, bolsas, pallets, etc.) y sus ubicaciones en un depósito. No registra el contenido de los contenedores.
 
-- Frontend: HTML + JS puro, en `public/`.
-- Worker de Cloudflare: `src/worker.js`. Sirve el frontend y entrega la configuración desde secretos.
-- Base de datos y login: Supabase. El aislamiento entre clientes lo hace RLS (`db/esquema.sql`).
-
-Ninguna clave se guarda en el repositorio.
+Por ahora todos los datos viven en memoria: al recargar la página se pierden. Es intencional, para desarrollar toda la lógica antes de elegir el almacenamiento definitivo.
 
 ## Estructura
 
 ```
 stockmap2/
 ├── public/
-│   ├── index.html   # login y aplicación
-│   └── app.js       # lógica del frontend
-├── src/
-│   └── worker.js    # Worker: sirve el frontend y /config.js desde secretos
-├── db/
-│   └── esquema.sql  # tablas, funciones y políticas RLS
-├── wrangler.toml    # configuración de Cloudflare
+│   ├── index.html       # login y aplicación
+│   ├── app.js           # interfaz de usuario (no sabe dónde se guardan los datos)
+│   └── persistencia.js  # interfaz de persistencia + implementación en memoria
+├── wrangler.toml        # configuración de Cloudflare (solo publica public/)
 └── LEEME.md
 ```
+
+## Interfaz de persistencia
+
+`app.js` solo usa `window.Persistencia`. La forma completa de la interfaz está documentada al inicio de `public/persistencia.js`.
+
+Para cambiar el almacenamiento, se escribe otra función `crearPersistenciaXxx` con la misma forma y se cambia la última línea de `persistencia.js`. El frontend no se toca.
 
 ## Roles
 
 | Rol | Qué puede hacer |
 |---|---|
-| Admin general (vos) | Ve y gestiona todos los clientes, suscripciones y usuarios. |
-| Admin de cliente | Gestiona contenedores y ubicaciones de su cliente y ve a los usuarios de su cliente. |
-| Operador | Crea, edita y borra contenedores y ubicaciones de su cliente. |
+| Admin general | Ve y gestiona todos los clientes. |
+| Admin de cliente | Gestiona contenedores y ubicaciones de su cliente. |
+| Operador | Gestiona contenedores y ubicaciones de su cliente. |
 
-Un cliente sin suscripción vigente queda sin acceso a sus datos, aunque tenga usuarios.
+Un cliente sin suscripción vigente queda en modo solo consulta: sus datos no se pueden modificar.
 
-## Puesta en marcha
+Nota: por ahora admin de cliente y operador tienen los mismos permisos. La gestión de usuarios de cada cliente llega en la siguiente etapa.
 
-### 1. Supabase
-1. Crear un proyecto nuevo en supabase.com.
-2. SQL Editor → New query → pegar `db/esquema.sql` completo → Run.
-3. Authentication → Users → crear tu usuario y copiar su UUID.
-4. En el SQL Editor, darte rol de administrador general (reemplazar el UUID):
-   ```sql
-   insert into perfiles (id, nombre, es_admin_general)
-     values ('TU-UUID-DE-AUTH', 'Fabio', true);
-   ```
-5. Project Settings → API: copiar la **Project URL** (va en `wrangler.toml`, en `SUPABASE_URL`) y la **anon public key** (va como secreto de Cloudflare, paso 2).
-   Nunca copies ni uses la **service_role key** en esta aplicación.
+## Usuarios de prueba
 
-### 2. Cloudflare
-Desde la carpeta del repositorio:
+Solo para desarrollo, definidos en `persistencia.js`:
 
-```bash
-npm install -g wrangler
-wrangler login
-wrangler secret put SUPABASE_ANON_KEY    # pegar la anon public key cuando lo pida
-wrangler deploy
-```
+| Email | Contraseña | Rol |
+|---|---|---|
+| admin@stockmap.local | admin123 | Admin general |
+| demo@cliente.local | demo123 | Admin de cliente (Cliente Demo) |
+| operador@cliente.local | op123 | Operador (Cliente Demo) |
 
-Después de cambiar la URL de Supabase en `wrangler.toml`, volver a ejecutar `wrangler deploy`.
-
-### 3. Alta manual de un cliente
-En el SQL Editor de Supabase:
-```sql
-insert into clientes (nombre) values ('Nombre del cliente') returning id;
-insert into suscripciones (cliente_id, estado, vence_el)
-  values ('UUID-DEL-CLIENTE', 'activa', '2027-12-31');
-```
-Luego crear el usuario en Authentication → Users y vincularlo:
-```sql
-insert into perfiles (id, cliente_id, nombre, rol)
-  values ('UUID-DEL-USUARIO', 'UUID-DEL-CLIENTE', 'Nombre', 'admin_cliente');
-```
-
-## Pendiente para la versión 2
-- Pantalla de administración para crear clientes y usuarios sin SQL (usaría `SUPABASE_SERVICE_ROLE_KEY` como secreto del Worker, nunca en el frontend).
-- Cobro de suscripciones (Mercado Pago o Stripe).
+## Pendiente
+- Implementación de almacenamiento definitivo (se elige después de desarrollar la lógica).
+- Pantalla para dar de alta clientes, suscripciones y usuarios.
+- Cobro de suscripciones.
 - Edición de contenedores y ubicaciones (hoy solo alta y baja).
 - Módulo 3D del depósito (al final del proyecto).
+
+## Abrir en local
+
+No requiere instalación. Abrir `public/index.html` en el navegador, o servir la carpeta `public/` con cualquier servidor estático.

@@ -1,12 +1,6 @@
 name = "stockmap"
-main = "src/worker.js"
 compatibility_date = "2026-10-01"
 
-# Frontend estático: solo se publica la carpeta public/.
+# Frontend estático: se publica solo la carpeta public/.
 [assets]
 directory = "./public"
-binding = "ASSETS"
-
-# URL de Supabase (no es secreta). La clave anon va como secreto, NO aquí.
-[vars]
-SUPABASE_URL = "https://TU-PROYECTO.supabase.co"
