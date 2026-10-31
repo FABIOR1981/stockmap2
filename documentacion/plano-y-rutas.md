@@ -22,7 +22,8 @@ El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones:
 - **Estantes = columnas.** Se ubican según su número: el estante 1 es la primera columna, el 2 la siguiente, etc.
 - **Divisiones:** no tienen posición propia en el dibujo. Aparecen en el texto del destino y en el detalle de cada estante, al pasar el cursor.
 - **Pasillo principal:** corre por la columna 0, a la izquierda de todos los estantes.
-- **Entrada:** arriba, sobre el pasillo principal.
+- **Entrada:** a la izquierda del depósito, a la altura del centro, de frente a las cabeceras de las estanterías (los extremos de cada fila).
+- **Pasillo principal:** corre por las cabeceras de las estanterías, a la izquierda de los estantes.
 
 Este es un modelo simplificado. Si el depósito real no sigue esa forma, el plano automático no lo refleja fielmente. Ver "Pendiente".
 
@@ -34,8 +35,8 @@ Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto
 
 Para llegar a una ubicación con estantería `E`, estante `N` y división `d`:
 
-1. Entrar por la **entrada** (arriba).
-2. Bajar por el **pasillo principal** (columna 0) hasta la fila de la estantería `E`.
+1. Entrar por la **entrada** (a la izquierda, de frente a las cabeceras).
+2. Recorrer el **pasillo principal** (columna 0) hasta la fila de la estantería `E`.
 3. Avanzar por esa fila hasta la columna del estante `N`.
 4. Buscar la división `d` de ese estante.
 
@@ -44,7 +45,7 @@ La ruta son tres puntos unidos por una línea. No se calcula un camino más cort
 ## Pasos que se muestran
 
 - "Entrá por la entrada del depósito."
-- "Bajá por el pasillo principal hasta la estantería E."
+- "Recorré el pasillo principal hasta la estantería E."
 - "Avanzá por la estantería E hasta el estante N."
 - "Buscá la división d de ese estante."
 

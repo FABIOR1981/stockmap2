@@ -28,16 +28,18 @@
     const fila = plano.pasillos.indexOf(ubicacion.pasillo);
     if (fila < 0 || !esNumero(ubicacion.estante)) return null;
     const columna = parseInt(ubicacion.estante, 10);
+    const yEntrada = (plano.pasillos.length - 1) / 2;
 
     return {
       puntos: [
-        { x: 0, y: -1 },      // entrada
-        { x: 0, y: fila },    // pasillo principal, a la altura del pasillo destino
-        { x: columna, y: fila }, // estante destino
+        { x: -1, y: yEntrada },       // entrada, de frente a las cabeceras
+        { x: 0, y: yEntrada },        // pasillo principal, a la altura de la entrada
+        { x: 0, y: fila },            // recorrer el pasillo principal hasta la estantería
+        { x: columna, y: fila },      // avanzar por la estantería hasta el estante
       ],
       pasos: [
-        "Entrá por la entrada del depósito.",
-        `Bajá por el pasillo principal hasta la estantería ${ubicacion.pasillo}.`,
+        "Entrá por la entrada del depósito, de frente a las cabeceras de las estanterías.",
+        `Recorré el pasillo principal hasta la estantería ${ubicacion.pasillo}.`,
         `Avanzá por la estantería ${ubicacion.pasillo} hasta el estante ${ubicacion.estante}.`,
         `Buscá la división ${ubicacion.nivel} de ese estante.`,
       ],

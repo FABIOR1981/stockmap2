@@ -232,34 +232,38 @@ function dibujarPlano(plano, contenedores, destino) {
   const PASO_X = 64;
   const PASO_Y = 84;
   const TOP = 60;
-  const IZQ = 80;
+  const IZQ = 110;
   const X = (col) => IZQ + col * PASO_X;
   const Y = (fila) => TOP + fila * PASO_Y + PASO_Y / 2;
   const n = plano.pasillos.length;
-  const ancho = X(plano.maxEstante + 1) + 40;
+  const bordeDerecho = X(plano.maxEstante + 1) + 20;
+  const ancho = bordeDerecho + 60;
   const alto = TOP + n * PASO_Y + 24;
+  // La entrada está a la izquierda, a la altura del centro, de frente a las cabeceras de las estanterías.
+  const yEntrada = (n - 1) / 2;
 
   const partes = [];
 
   // Bandas de pasillo con su nombre
   plano.pasillos.forEach((p, i) => {
     partes.push(
-      `<rect x="44" y="${TOP + i * PASO_Y + 8}" width="${ancho - 64}" height="${PASO_Y - 16}" rx="8" fill="#f4f7f9" stroke="#e3e9ef"/>`
+      `<rect x="${X(0) - 22}" y="${TOP + i * PASO_Y + 8}" width="${bordeDerecho - (X(0) - 22)}" height="${PASO_Y - 16}" rx="8" fill="#f4f7f9" stroke="#e3e9ef"/>`
     );
     partes.push(
-      `<text x="24" y="${Y(i) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(p)}</text>`
+      `<text x="${bordeDerecho + 10}" y="${Y(i) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(p)}</text>`
     );
   });
 
-  // Pasillo principal y entrada
+  // Pasillo principal (por las cabeceras de las estanterías) y entrada de frente a ellas
   if (n > 0) {
     partes.push(
-      `<line x1="${X(0)}" y1="${Y(-1)}" x2="${X(0)}" y2="${Y(n - 1)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+      `<line x1="${X(0)}" y1="${Y(0) - 30}" x2="${X(0)}" y2="${Y(n - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+    );
+    partes.push(`<circle cx="${X(-1)}" cy="${Y(yEntrada)}" r="6" fill="#4f5c69"/>`);
+    partes.push(
+      `<text x="${X(-1)}" y="${Y(yEntrada) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
     );
   }
-  partes.push(
-    `<text x="${X(0)}" y="${Y(-1) - 16}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
-  );
 
   // Estantes, agrupados por pasillo y número (varios niveles en el mismo lugar)
   const grupos = {};
@@ -294,7 +298,7 @@ function dibujarPlano(plano, contenedores, destino) {
     partes.push(
       `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(0)}" cy="${Y(-1)}" r="6" fill="#1f5f5b"/>`);
+    partes.push(`<circle cx="${X(-1)}" cy="${Y(yEntrada)}" r="6" fill="#1f5f5b"/>`);
   }
 
   $("#plano-svg").innerHTML =
