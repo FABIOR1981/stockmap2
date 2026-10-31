@@ -104,6 +104,14 @@
     }
     .menu button:hover:not(:disabled) { background: #e9eef3; color: var(--tinta); }
     .menu button[aria-current="page"] { background: var(--acento-suave); color: var(--acento); }
+    .menu .auxiliar {
+      border: 1px dashed var(--linea-fuerte);
+      color: var(--tinta-suave);
+      background: transparent;
+    }
+    @media (min-width: 760px) {
+      .menu .auxiliar { margin-top: auto; }
+    }
 
     .contenido {
       padding: 28px 24px 56px;
@@ -369,6 +377,8 @@
       <nav class="menu" aria-label="Secciones">
         <button type="button" data-vista="contenedores" aria-current="page">Contenedores</button>
         <button type="button" data-vista="ubicaciones">Ubicaciones</button>
+        <!-- Solo para desarrollo: quitar antes de usar con clientes reales -->
+        <button type="button" id="btn-datos-prueba" class="auxiliar">Cargar datos de prueba</button>
       </nav>
 
       <div class="contenido">

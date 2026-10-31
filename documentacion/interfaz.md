@@ -18,6 +18,7 @@ Archivos: `public/index.html` (estructura y estilos) y `public/app.js` (comporta
 - Solo se ve una sección a la vez. La sección activa queda marcada en el menú.
 - **Selector de cliente:** visible solo para el admin general, encima del contenido. Los clientes sin acceso aparecen con "(sin acceso)".
 - **Aviso:** franja amarilla arriba del contenido para errores de negocio y para el caso de cliente sin acceso.
+- **Cargar datos de prueba:** botón punteado al pie del menú. Pide confirmación y carga ubicaciones y contenedores de ejemplo en el cliente activo. Es solo para desarrollo y debe quitarse antes de usar con clientes reales.
 
 ### Sección Contenedores
 

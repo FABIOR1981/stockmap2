@@ -263,4 +263,20 @@ function escapar(valor) {
   }[c]));
 }
 
+// Solo desarrollo: carga ubicaciones y contenedores de ejemplo en el cliente activo.
+$("#btn-datos-prueba").addEventListener("click", async () => {
+  if (!clienteActivo) {
+    mostrarAviso("Elegí un cliente antes de cargar datos de prueba.");
+    return;
+  }
+  if (!confirm("¿Cargar datos de prueba en este cliente?")) return;
+  await intentar(async () => {
+    const r = await P.datosPrueba.cargar(clienteActivo);
+    await cargarDatos();
+    mostrarAviso(
+      `Datos de prueba cargados: ${r.ubicacionesCreadas} ubicaciones y ${r.contenedoresCreados} contenedores nuevos.`
+    );
+  });
+});
+
 iniciar();

@@ -63,6 +63,16 @@ El admin general ve todos los clientes. Cualquier otro usuario ve solo el suyo.
 |---|---|
 | `tiposContenedor` | `["caja", "bolsa", "pallet", "tambor", "otro"]` |
 
+### Datos de prueba (solo desarrollo)
+
+| Función | Parámetros | Devuelve |
+|---|---|---|
+| `datosPrueba.cargar(clienteId)` | id de cliente | `{ ubicacionesCreadas, contenedoresCreados }` |
+
+Agrega 4 ubicaciones y 5 contenedores de ejemplo al cliente indicado. No duplica lo que ya exista, así que puede llamarse varias veces sin efectos extra. Lo usa el botón **Cargar datos de prueba** del menú.
+
+Si se cambia de almacenamiento, esta función puede quitarse o convertirse en un script de carga aparte.
+
 ## Reglas que aplica la implementación
 
 Las reglas de validación están en [reglas-de-negocio.md](reglas-de-negocio.md). La interfaz de persistencia es la única que las aplica: `app.js` no las repite.

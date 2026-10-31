@@ -19,6 +19,7 @@
 //   contenedores.crear(clienteId, datos)   -> contenedor creado
 //   contenedores.borrar(id)
 //   tiposContenedor                        -> ["caja", "bolsa", ...]
+//   datosPrueba.cargar(clienteId)          -> { ubicacionesCreadas, contenedoresCreados }
 
 (function () {
   const TIPOS_CONTENEDOR = ["caja", "bolsa", "pallet", "tambor", "otro"];
@@ -218,11 +219,74 @@
       },
     };
 
+    // Carga un juego de ubicaciones y contenedores de ejemplo.
+    // No duplica lo que ya exista: si se llama dos veces, la segunda no agrega nada.
+    const datosPrueba = {
+      async cargar(clienteId) {
+        exigirAcceso(clienteId);
+
+        const ubicacionesPrueba = [
+          ["A", "1", "1"],
+          ["A", "1", "2"],
+          ["A", "2", "1"],
+          ["B", "1", "1"],
+        ];
+        let ubicacionesCreadas = 0;
+        for (const [pasillo, estante, nivel] of ubicacionesPrueba) {
+          const existe = datos.ubicaciones.some(
+            (x) => x.clienteId === clienteId && x.pasillo === pasillo && x.estante === estante && x.nivel === nivel
+          );
+          if (!existe) {
+            datos.ubicaciones.push({ id: nuevoId("ub"), clienteId, pasillo, estante, nivel });
+            ubicacionesCreadas++;
+          }
+        }
+
+        const contenedoresPrueba = [
+          { codigo: "CJ-0001", tipo: "caja", ubicacion: ["A", "1", "1"], descripcion: "Caja de prueba" },
+          { codigo: "CJ-0002", tipo: "caja", ubicacion: ["A", "1", "2"], descripcion: "Caja de prueba" },
+          { codigo: "BL-0003", tipo: "bolsa", ubicacion: ["A", "2", "1"], descripcion: "Bolsa de prueba" },
+          { codigo: "PL-0004", tipo: "pallet", ubicacion: ["B", "1", "1"], descripcion: "Pallet de prueba" },
+          { codigo: "TB-0005", tipo: "tambor", ubicacion: null, descripcion: "Tambor sin ubicación asignada" },
+        ];
+        let contenedoresCreados = 0;
+        for (const c of contenedoresPrueba) {
+          const existe = datos.contenedores.some(
+            (x) => x.clienteId === clienteId && x.codigo.toLowerCase() === c.codigo.toLowerCase()
+          );
+          if (existe) continue;
+
+          let ubicacionId = null;
+          if (c.ubicacion) {
+            const [p, e, n] = c.ubicacion;
+            const ub = datos.ubicaciones.find(
+              (x) => x.clienteId === clienteId && x.pasillo === p && x.estante === e && x.nivel === n
+            );
+            ubicacionId = ub ? ub.id : null;
+          }
+
+          datos.contenedores.push({
+            id: nuevoId("ct"),
+            clienteId,
+            codigo: c.codigo,
+            tipo: c.tipo,
+            ubicacionId,
+            descripcion: c.descripcion,
+            fechaAlta: new Date().toISOString(),
+          });
+          contenedoresCreados++;
+        }
+
+        return { ubicacionesCreadas, contenedoresCreados };
+      },
+    };
+
     return {
       sesion,
       clientes,
       ubicaciones,
       contenedores,
+      datosPrueba,
       tiposContenedor: [...TIPOS_CONTENEDOR],
     };
   }
