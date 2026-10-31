@@ -5,42 +5,283 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>StockMap · Depósito</title>
   <style>
-    :root { --bg:#f5f6f8; --card:#fff; --texto:#1d2330; --suave:#6b7280; --acento:#2563eb; --peligro:#dc2626; --borde:#e3e6ec; }
+    :root {
+      --fondo: #eceff3;
+      --superficie: #fbfcfd;
+      --tinta: #14202b;
+      --tinta-suave: #4f5c69;
+      --linea: #d8dfe6;
+      --linea-fuerte: #bcc7d2;
+      --acento: #1f5f5b;
+      --acento-hover: #174a47;
+      --acento-suave: #e2eeed;
+      --foco: rgba(31, 95, 91, 0.28);
+      --peligro: #a4262c;
+      --peligro-suave: #f8e7e6;
+      --aviso-fondo: #f7efd9;
+      --aviso-tinta: #5c4206;
+      --radio: 10px;
+      --radio-chico: 8px;
+    }
+
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--texto); }
-    header { background:var(--card); border-bottom:1px solid var(--borde); padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
-    main { max-width:960px; margin:24px auto; padding:0 16px; }
-    .card { background:var(--card); border:1px solid var(--borde); border-radius:10px; padding:20px; margin-bottom:20px; }
-    h2 { margin:0 0 14px; font-size:1.1rem; }
-    label { display:block; font-size:.85rem; color:var(--suave); margin:10px 0 4px; }
-    input, select, button { font:inherit; padding:9px 11px; border-radius:8px; border:1px solid var(--borde); }
-    input, select { width:100%; }
-    button { background:var(--acento); color:#fff; border:none; cursor:pointer; }
-    button.secundario { background:#e5e7eb; color:var(--texto); }
-    button.peligro { background:var(--peligro); }
-    .fila { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:12px; }
-    table { width:100%; border-collapse:collapse; font-size:.92rem; }
-    th, td { text-align:left; padding:9px 6px; border-bottom:1px solid var(--borde); }
-    th { color:var(--suave); font-weight:600; }
-    .error { color:var(--peligro); margin:0 0 16px; font-size:.9rem; }
-    .oculto { display:none !important; }
-    .etiqueta { background:#eef2ff; color:var(--acento); padding:2px 8px; border-radius:99px; font-size:.8rem; }
-    .aviso { background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:16px; }
+    ::selection { background: var(--acento-suave); color: var(--tinta); }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      background: var(--fondo);
+      color: var(--tinta);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- Cabecera ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--superficie);
+      border-bottom: 1px solid var(--linea);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .marca {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+    .marca svg { width: 22px; height: 22px; }
+    .sesion { display: flex; align-items: center; gap: 12px; }
+
+    /* ---------- Contenedor principal ---------- */
+    main {
+      max-width: 1040px;
+      margin: 28px auto 48px;
+      padding: 0 20px;
+    }
+    main.login { max-width: 380px; margin-top: 12vh; }
+
+    /* ---------- Tarjetas ---------- */
+    .card {
+      background: var(--superficie);
+      border: 1px solid var(--linea);
+      border-radius: var(--radio);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 1rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+    .grilla-dos {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    @media (min-width: 760px) {
+      .grilla-dos { grid-template-columns: 1fr 1fr; }
+    }
+    .grilla-dos .card { margin-bottom: 0; }
+
+    /* ---------- Formularios ---------- */
+    .campos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px 16px;
+    }
+    .campo { display: flex; flex-direction: column; min-width: 0; }
+    .campo.ancho { grid-column: 1 / -1; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--tinta-suave);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      font: inherit;
+      color: var(--tinta);
+      background: #fff;
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--linea-fuerte);
+      border-radius: var(--radio-chico);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input::placeholder { color: #8a867c; }
+    input:hover, select:hover { border-color: #aaa496; }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--acento);
+      box-shadow: 0 0 0 3px var(--foco);
+    }
+
+    .acciones { margin-top: 18px; display: flex; justify-content: flex-end; }
+
+    /* ---------- Botones ---------- */
+    button {
+      font: inherit;
+      font-weight: 600;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: var(--radio-chico);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--foco); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .primario {
+      background: var(--acento);
+      color: #fff;
+    }
+    .primario:hover:not(:disabled) { background: var(--acento-hover); }
+    .primario:active:not(:disabled) { background: #123a38; }
+
+    .secundario {
+      background: var(--superficie);
+      color: var(--tinta);
+      border-color: var(--linea-fuerte);
+    }
+    .secundario:hover:not(:disabled) { background: #e9eef3; border-color: #9aa8b6; }
+
+    .peligro {
+      background: transparent;
+      color: var(--peligro);
+      height: 32px;
+      padding: 0 10px;
+      font-size: 0.88rem;
+    }
+    .peligro:hover:not(:disabled) { background: var(--peligro-suave); }
+
+    .ancho-completo { width: 100%; }
+
+    /* ---------- Tabla ---------- */
+    .tabla-contenedor { overflow-x: auto; margin: 0 -24px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--linea);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    thead th {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--tinta-suave);
+      background: #f4f7f9;
+      border-bottom-color: var(--linea-fuerte);
+    }
+    tbody tr:hover td { background: #f6f9fb; }
+    tbody tr:last-child td { border-bottom: none; }
+    td strong { font-weight: 650; font-variant-numeric: tabular-nums; }
+    td:last-child, th:last-child { text-align: right; width: 1%; }
+    td.vacio,
+    td[colspan] {
+      text-align: center;
+      width: auto;
+      color: var(--tinta-suave);
+      padding: 28px 24px;
+      white-space: normal;
+    }
+
+    /* ---------- Etiquetas y avisos ---------- */
+    .etiqueta {
+      display: inline-block;
+      background: var(--acento-suave);
+      color: var(--acento);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .aviso {
+      background: var(--aviso-fondo);
+      color: var(--aviso-tinta);
+      border: 1px solid #ead7a4;
+      border-radius: var(--radio-chico);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+    }
+
+    .error {
+      color: var(--peligro);
+      background: var(--peligro-suave);
+      border-radius: var(--radio-chico);
+      padding: 10px 12px;
+      margin: 14px 0 0;
+      font-size: 0.9rem;
+    }
+
+    .oculto { display: none !important; }
+
+    /* ---------- Login ---------- */
+    #vista-login {
+      min-height: 100vh;
+    }
+    .login-titulo {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .login-sub {
+      margin: 0 0 20px;
+      color: var(--tinta-suave);
+      font-size: 0.92rem;
+    }
+    #form-login label { margin-top: 14px; }
+    #form-login label:first-of-type { margin-top: 0; }
+    #form-login .primario { margin-top: 20px; }
+
+    /* ---------- Movimiento respetuoso ---------- */
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
   </style>
 </head>
 <body>
 
   <!-- Pantalla de login -->
   <section id="vista-login" class="oculto">
-    <main style="max-width:380px; margin-top:80px">
+    <main class="login">
       <div class="card">
-        <h2>Ingresar a StockMap</h2>
+        <div class="marca" style="margin-bottom:22px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1f5f5b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="5" rx="1"/>
+            <rect x="3" y="11" width="8" height="9" rx="1"/>
+            <rect x="13" y="11" width="8" height="9" rx="1"/>
+          </svg>
+          StockMap
+        </div>
+        <h2 class="login-titulo">Ingresar</h2>
+        <p class="login-sub">Usá tu email y contraseña para entrar.</p>
         <form id="form-login">
           <label for="email">Email</label>
           <input id="email" type="email" required autocomplete="username" />
           <label for="password">Contraseña</label>
           <input id="password" type="password" required autocomplete="current-password" />
-          <p><button type="submit" style="width:100%; margin-top:14px">Entrar</button></p>
+          <button type="submit" class="primario ancho-completo">Entrar</button>
         </form>
         <p id="error-login" class="error oculto"></p>
       </div>
@@ -50,10 +291,17 @@
   <!-- Aplicación principal -->
   <section id="vista-app" class="oculto">
     <header>
-      <strong>StockMap</strong>
-      <div>
+      <div class="marca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1f5f5b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="5" rx="1"/>
+          <rect x="3" y="11" width="8" height="9" rx="1"/>
+          <rect x="13" y="11" width="8" height="9" rx="1"/>
+        </svg>
+        StockMap
+      </div>
+      <div class="sesion">
         <span id="usuario-actual" class="etiqueta"></span>
-        <button id="btn-salir" class="secundario" style="margin-left:10px">Salir</button>
+        <button id="btn-salir" class="secundario">Salir</button>
       </div>
     </header>
 
@@ -62,54 +310,66 @@
 
       <!-- Selector de cliente: solo visible para el admin general -->
       <div id="bloque-cliente" class="card oculto">
-        <label for="selector-cliente">Cliente</label>
-        <select id="selector-cliente"></select>
+        <div class="campo">
+          <label for="selector-cliente">Cliente</label>
+          <select id="selector-cliente"></select>
+        </div>
       </div>
 
-      <!-- Alta de contenedor -->
-      <div class="card">
-        <h2>Nuevo contenedor</h2>
-        <form id="form-contenedor">
-          <div class="fila">
-            <div>
-              <label for="codigo">Código / etiqueta</label>
-              <input id="codigo" required />
+      <div class="grilla-dos">
+        <!-- Alta de contenedor -->
+        <div class="card">
+          <h2>Nuevo contenedor</h2>
+          <form id="form-contenedor">
+            <div class="campos">
+              <div class="campo">
+                <label for="codigo">Código / etiqueta</label>
+                <input id="codigo" required />
+              </div>
+              <div class="campo">
+                <label for="tipo">Tipo</label>
+                <select id="tipo"></select>
+              </div>
+              <div class="campo">
+                <label for="ubicacion">Ubicación</label>
+                <select id="ubicacion"></select>
+              </div>
+              <div class="campo ancho">
+                <label for="descripcion">Descripción corta (sin detallar el contenido)</label>
+                <input id="descripcion" maxlength="120" />
+              </div>
             </div>
-            <div>
-              <label for="tipo">Tipo</label>
-              <select id="tipo"></select>
+            <div class="acciones">
+              <button type="submit" class="primario">Guardar contenedor</button>
             </div>
-            <div>
-              <label for="ubicacion">Ubicación</label>
-              <select id="ubicacion"></select>
-            </div>
-          </div>
-          <label for="descripcion">Descripción corta (sin detallar el contenido)</label>
-          <input id="descripcion" maxlength="120" />
-          <p><button type="submit" style="margin-top:14px">Guardar contenedor</button></p>
-        </form>
-      </div>
+          </form>
+        </div>
 
-      <!-- Alta de ubicación -->
-      <div class="card">
-        <h2>Nueva ubicación</h2>
-        <form id="form-ubicacion">
-          <div class="fila">
-            <div><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
-            <div><label for="estante">Estante</label><input id="estante" required /></div>
-            <div><label for="nivel">Nivel</label><input id="nivel" required /></div>
-          </div>
-          <p><button type="submit" class="secundario" style="margin-top:14px">Guardar ubicación</button></p>
-        </form>
+        <!-- Alta de ubicación -->
+        <div class="card">
+          <h2>Nueva ubicación</h2>
+          <form id="form-ubicacion">
+            <div class="campos">
+              <div class="campo"><label for="pasillo">Pasillo</label><input id="pasillo" required /></div>
+              <div class="campo"><label for="estante">Estante</label><input id="estante" required /></div>
+              <div class="campo"><label for="nivel">Nivel</label><input id="nivel" required /></div>
+            </div>
+            <div class="acciones">
+              <button type="submit" class="secundario">Guardar ubicación</button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <!-- Listado de contenedores -->
-      <div class="card">
+      <div class="card" style="margin-top:20px; padding-bottom:0">
         <h2>Contenedores</h2>
-        <table>
-          <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
-          <tbody id="tabla-contenedores"></tbody>
-        </table>
+        <div class="tabla-contenedor">
+          <table>
+            <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
+            <tbody id="tabla-contenedores"></tbody>
+          </table>
+        </div>
       </div>
     </main>
   </section>
