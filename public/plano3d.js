@@ -170,9 +170,10 @@
     const h = ALTO_ESTANTERIA / n;
     const anchoBahia = ancho / bahias;
 
-    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x4a525c });
-    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x2b2f36 });
-    const tabla = new THREE.MeshLambertMaterial({ color: 0x9aa3ad });
+    // Estructura metálica clara: contrasta con el piso epóxico oscuro.
+    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x9aa4af });
+    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0xc3cbd4 });
+    const tabla = new THREE.MeshLambertMaterial({ color: 0xe3e7ec });
 
     // Postes en cada límite de bahía, al frente y al fondo.
     for (let i = 0; i <= bahias; i++) {
