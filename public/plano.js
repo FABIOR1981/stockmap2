@@ -215,7 +215,7 @@
 
   // Recorrido por varias ubicaciones. Devuelve el orden de visita, el camino celda por celda y los pasos.
   // `ubicaciones`: lista de ubicaciones con posición en el plano (sin repetir). Devuelve null si no hay ruta posible.
-  function planificarRecorrido(plano, ubicaciones) {
+  function planificarRecorrido(plano, ubicaciones, opciones = {}) {
     const paradas = ubicaciones.filter((u) => plano.bandas[u.pasillo] && esNumero(u.estante));
     if (!paradas.length) return null;
     if (paradas.length > MAX_PARADAS) throw new Error(`Hasta ${MAX_PARADAS} ubicaciones por recorrido.`);
@@ -253,6 +253,14 @@
       paradasEnRuta.push({ x: mejor.c.x, y: mejor.c.y, n: n + 1, ubicacion: paradas[idx] });
     });
 
+    // Camino de vuelta: desde la última parada hasta la entrada.
+    let retorno = [];
+    if (opciones.retorno && paradasEnRuta.length) {
+      const r = bfs(plano, [actual]);
+      retorno = caminoHasta(r.previa, plano.entrada).slice(1);
+      longitud += r.dist.get(`${plano.entrada.x},${plano.entrada.y}`) ?? 0;
+    }
+
     const pasos = [
       "Entrá por la entrada del depósito, por la pared izquierda.",
       ...paradasEnRuta.map(
@@ -260,9 +268,11 @@
           `${p.n}. Caminá hasta el frente de la estantería ${p.ubicacion.pasillo} y buscá el estante ${p.ubicacion.estante}, división ${p.ubicacion.nivel}.`
       ),
     ];
+    if (retorno.length) pasos.push(`${paradasEnRuta.length + 1}. Volvé a la entrada por el mismo camino.`);
     return {
       orden: paradasEnRuta.map((p) => p.ubicacion),
       puntos,
+      retorno,
       paradas: paradasEnRuta,
       pasos,
       longitud,

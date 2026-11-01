@@ -537,13 +537,14 @@
               <form id="form-ruta">
                 <label for="ruta-codigos">Códigos de los contenedores a buscar</label>
                 <textarea id="ruta-codigos" rows="5" placeholder="Un código por línea. También sirve escanear uno tras otro."></textarea>
+                <label class="nota" style="display:block;margin:0 0 12px"><input type="checkbox" id="ruta-retorno" checked> Volver a la entrada (camino de vuelta en rojo)</label>
                 <button type="submit" class="primario">Armar la mejor ruta</button>
               </form>
               <p id="ruta-resumen" class="nota"></p>
               <ul id="ruta-pasos" class="plano-pasos"></ul>
             </div>
             <div class="card">
-              <p class="nota" style="margin-top:0">El recorrido sale de la entrada y pasa por el frente de cada estantería, en el orden más corto. Las flechas marcan el sentido y los números el orden de las paradas.</p>
+              <p class="nota" style="margin-top:0">El recorrido sale de la entrada y pasa por el frente de cada estantería, en el orden más corto. Las flechas verdes marcan la ida, las rojas la vuelta a la entrada, y los números el orden de las paradas.</p>
               <div id="ruta3d-caja" class="plano3d-caja"></div>
             </div>
           </div>

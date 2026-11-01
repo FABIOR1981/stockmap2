@@ -316,7 +316,10 @@ $("#form-ruta").addEventListener("submit", async (e) => {
       porUbicacion.get(u.id).codigos.push(c.codigo);
     }
 
-    const resultado = porUbicacion.size ? Plano.planificarRecorrido(plano, [...porUbicacion.values()].map((p) => p.ubicacion)) : null;
+    const conRetorno = $("#ruta-retorno").checked;
+    const resultado = porUbicacion.size
+      ? Plano.planificarRecorrido(plano, [...porUbicacion.values()].map((p) => p.ubicacion), { retorno: conRetorno })
+      : null;
 
     // Mensaje de resumen: qué se encontró, qué no y cuánto camina.
     const partes = [];
@@ -334,8 +337,8 @@ $("#form-ruta").addEventListener("submit", async (e) => {
         li.textContent = texto;
         // Cada parada ya viene numerada desde el cálculo (igual que en el 3D).
         if (i > 0) {
-          const parada = resultado.paradas[i - 1];
-          const codigos = porUbicacion.get(parada.ubicacion.id)?.codigos || [];
+          const parada = resultado.paradas[i - 1]; // el último paso (vuelta) no tiene parada
+          const codigos = parada ? porUbicacion.get(parada.ubicacion.id)?.codigos || [] : [];
           if (codigos.length) {
             const detalle = document.createElement("span");
             detalle.className = "nota";
@@ -360,7 +363,8 @@ $("#form-ruta").addEventListener("submit", async (e) => {
       null,
       resultado ? resultado.puntos : null,
       contenidoPorUbicacion,
-      resultado ? resultado.paradas : []
+      resultado ? resultado.paradas : [],
+      resultado && resultado.retorno.length ? [resultado.puntos[resultado.puntos.length - 1], ...resultado.retorno] : null
     );
   });
 });

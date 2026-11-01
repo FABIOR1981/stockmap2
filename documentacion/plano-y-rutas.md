@@ -55,6 +55,7 @@ Así el camino es el más corto posible hasta el frente, que es donde se busca e
 - Contenedores en la misma ubicación cuentan como una sola parada.
 - El orden de visita es el más corto desde la entrada, sin volver a ella. Se calcula con programación dinámica sobre subconjuntos (`ordenOptimo` en `plano.js`), así que el orden es exacto. Hay un máximo de 12 paradas.
 - El camino se arma celda por celda, desde la posición actual hasta el frente más cercano de la siguiente parada.
+- Con la casilla "Volver a la entrada" marcada (por defecto), se suma el camino de vuelta desde la última parada hasta la entrada. En 3D la ida es verde y la vuelta roja, más delgada.
 - La vista 3D muestra el recorrido con flechas y un número naranja en cada parada. La lista muestra los pasos y los contenedores que se retiran en cada una.
 
 ## Cómo se llega a la vista

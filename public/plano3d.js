@@ -39,23 +39,27 @@
   }
 
   // Ruta: una franja plana por cada tramo recto entre dos puntos de la cuadrícula.
-  function dibujarRuta(plano, puntos, escena) {
-    const material = new THREE.MeshLambertMaterial({ color: 0x2ec4a6, emissive: 0x0b4a40 });
+  // Estilos de la ruta: ida en verde; vuelta a la entrada en rojo, más delgada.
+  const ESTILO_IDA = { color: 0x2ec4a6, emissive: 0x0b4a40, grosor: 0.22, flecha: 0.16, altura: 0.12 };
+  const ESTILO_VUELTA = { color: 0xd64545, emissive: 0x5a1212, grosor: 0.1, flecha: 0.1, altura: 0.15 };
+
+  function dibujarRuta(plano, puntos, escena, estilo = ESTILO_IDA) {
+    const material = new THREE.MeshLambertMaterial({ color: estilo.color, emissive: estilo.emissive });
     for (let i = 1; i < puntos.length; i++) {
       const a = aMundo(plano, puntos[i - 1].x + 0.5, puntos[i - 1].y + 0.5);
       const b = aMundo(plano, puntos[i].x + 0.5, puntos[i].y + 0.5);
       const largo = Math.abs(a.x - b.x) + Math.abs(a.z - b.z) + 0.12;
       const franja = new THREE.Mesh(
-        new THREE.BoxGeometry(Math.abs(a.x - b.x) > 0 ? largo : 0.22, 0.1, Math.abs(a.z - b.z) > 0 ? largo : 0.22),
+        new THREE.BoxGeometry(Math.abs(a.x - b.x) > 0 ? largo : estilo.grosor, 0.1, Math.abs(a.z - b.z) > 0 ? largo : estilo.grosor),
         material
       );
-      franja.position.set((a.x + b.x) / 2, 0.12, (a.z + b.z) / 2);
+      franja.position.set((a.x + b.x) / 2, estilo.altura, (a.z + b.z) / 2);
       escena.add(franja);
       // Flecha en el medio del tramo, apuntando hacia el siguiente punto de la ruta.
       const flecha = new THREE.Group();
-      flecha.position.set((a.x + b.x) / 2, 0.2, (a.z + b.z) / 2);
+      flecha.position.set((a.x + b.x) / 2, estilo.altura + 0.08, (a.z + b.z) / 2);
       flecha.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
-      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.32, 12), material);
+      const punta = new THREE.Mesh(new THREE.ConeGeometry(estilo.flecha, estilo.flecha * 2, 12), material);
       punta.rotation.x = Math.PI / 2;
       flecha.add(punta);
       escena.add(flecha);
@@ -284,7 +288,7 @@
 
   // Dibuja el depósito en `caja`. `letraDestino` resalta una estantería; `puntosRuta` es el recorrido (celdas).
   // `contenidoPorUbicacion`: Map de id de ubicación -> lista de tipos de contenedor que hay en ella.
-  function montar(contenedor, plano, letraDestino, puntosRuta, contenidoPorUbicacion, paradas) {
+  function montar(contenedor, plano, letraDestino, puntosRuta, contenidoPorUbicacion, paradas, puntosVuelta) {
     desmontar();
     if (!plano.estanterias.length) {
       contenedor.textContent = "Todavía no hay estanterías para mostrar.";
@@ -332,6 +336,7 @@
     escena.add(entradaHueco(entrada.x, entrada.z));
 
     if (puntosRuta && puntosRuta.length > 1) dibujarRuta(plano, puntosRuta, escena);
+    if (puntosVuelta && puntosVuelta.length > 1) dibujarRuta(plano, puntosVuelta, escena, ESTILO_VUELTA);
     // Recorrido con varias paradas: número de orden de cada parada, sobre el frente de su estantería.
     (paradas || []).forEach((p) => {
       const c = aMundo(plano, p.x + 0.5, p.y + 0.5);
