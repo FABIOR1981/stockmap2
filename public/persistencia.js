@@ -230,8 +230,8 @@
       async cargar(clienteId) {
         exigirAcceso(clienteId);
 
-        // Cinco estanterías (A a E), cuatro estantes por estantería y tres divisiones por estante.
-        const ESTANTERIAS = ["A", "B", "C", "D", "E"];
+        // Diez estanterías (A a J) en dos pasillos de cinco, cuatro estantes por estantería y tres divisiones por estante.
+        const ESTANTERIAS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
         const ESTANTES = [1, 2, 3, 4];
         const DIVISIONES = ["a", "b", "c"];
         const ubicacionesPrueba = [];

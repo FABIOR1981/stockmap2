@@ -46,6 +46,10 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Plano general más vista de frente por estantería.** El plano general muestra dónde está cada estantería, pero no alcanza para ubicar estante y división. Se agregó una vista de frente de la estantería (columnas: estantes; filas: divisiones), que se abre con "Cómo llegar" o tocando una estantería.
 
+## 2026-10-31 (pasillos)
+
+**Pasillos por grupos de estanterías.** Las estanterías se agrupan de cinco en cinco, en orden alfabético (A–E en el pasillo 1, F–J en el pasillo 2). Se eligió así para no cambiar el formato de la ubicación (A · 1 · a). Si el depósito necesita otra agrupación, se cambia la constante `ESTANTERIAS_POR_PASILLO` en `plano.js`.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).

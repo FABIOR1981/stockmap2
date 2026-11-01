@@ -231,42 +231,49 @@ function dibujarPlano(plano, contenedores, destino) {
   // Geometría del dibujo
   const PASO_X = 64;
   const PASO_Y = 84;
-  const TOP = 60;
+  const TOP = 80;
   const IZQ = 110;
   const X = (col) => IZQ + col * PASO_X;
   const Y = (fila) => TOP + fila * PASO_Y + PASO_Y / 2;
-  const n = plano.pasillos.length;
-  const bordeDerecho = X(plano.maxEstante + 1) + 20;
+  const { paso, maxEstante, corredores, filasPorPasillo } = plano;
+  const ultimoPasillo = Math.max(0, corredores - 1) * paso; // columna del último pasillo
+  const bordeDerecho = X(ultimoPasillo + maxEstante + 1) + 20;
   const ancho = bordeDerecho + 60;
-  const alto = TOP + n * PASO_Y + 24;
-  // La entrada está a la izquierda, a la altura del centro, de frente a las cabeceras de las estanterías.
-  const yEntrada = (n - 1) / 2;
+  const alto = TOP + filasPorPasillo * PASO_Y + 24;
+  // Entrada arriba a la izquierda; la calle transversal (fila -1) une los pasillos.
+  const yCalle = -1;
 
   const partes = [];
 
-  // Bandas de pasillo con su nombre
-  // Cada estantería es una franja tocable; la del destino se resalta.
-  plano.pasillos.forEach((p, i) => {
-    const esDestino = destino && destino.pasillo === p;
+  // Franjas de estanterías, cada una tocable; la del destino se resalta.
+  plano.estanterias.forEach((letra) => {
+    const pos = plano.posicion[letra];
+    const cx = pos.corredor * paso;
+    const esDestino = destino && destino.pasillo === letra;
     partes.push(
-      `<g data-pasillo="${escapar(p)}" style="cursor:pointer">
-        <title>Estantería ${escapar(p)}: tocá para ver sus estantes y divisiones</title>
-        <rect x="${X(0) - 22}" y="${TOP + i * PASO_Y + 8}" width="${bordeDerecho - (X(0) - 22)}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#e3e9ef"}" stroke-width="${esDestino ? 2 : 1}"/>
+      `<g data-pasillo="${escapar(letra)}" style="cursor:pointer">
+        <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
+        <rect x="${X(cx) - 22}" y="${Y(pos.fila) - 34}" width="${X(cx + maxEstante + 1) - X(cx) + 22}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#e3e9ef"}" stroke-width="${esDestino ? 2 : 1}"/>
       </g>`
     );
     partes.push(
-      `<text x="${bordeDerecho + 10}" y="${Y(i) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(p)}</text>`
+      `<text x="${X(cx + maxEstante + 1) + 10}" y="${Y(pos.fila) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(letra)}</text>`
     );
   });
 
-  // Pasillo principal (por las cabeceras de las estanterías) y entrada de frente a ellas
-  if (n > 0) {
+  // Pasillos (líneas verticales) y calle transversal con la entrada
+  if (corredores > 0) {
+    for (let c = 0; c < corredores; c++) {
+      partes.push(
+        `<line x1="${X(c * paso)}" y1="${Y(yCalle)}" x2="${X(c * paso)}" y2="${Y(filasPorPasillo - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+      );
+    }
     partes.push(
-      `<line x1="${X(0)}" y1="${Y(0) - 30}" x2="${X(0)}" y2="${Y(n - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(-1)}" cy="${Y(yEntrada)}" r="6" fill="#4f5c69"/>`);
+    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
     partes.push(
-      `<text x="${X(-1)}" y="${Y(yEntrada) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
+      `<text x="${X(-1)}" y="${Y(yCalle) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
     );
   }
 
@@ -276,7 +283,7 @@ function dibujarPlano(plano, contenedores, destino) {
     partes.push(
       `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(-1)}" cy="${Y(yEntrada)}" r="6" fill="#1f5f5b"/>`);
+    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#1f5f5b"/>`);
   }
 
   $("#plano-svg").innerHTML =

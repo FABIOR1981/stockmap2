@@ -18,7 +18,9 @@ Una ubicación completa se muestra como `A · 1 · a`.
 
 El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones: se deducen de la estantería y el estante.
 
-- **Estanterías = franjas horizontales.** Se ordenan alfabéticamente: A, B, C... Cada franja se puede tocar para abrir su vista de frente.
+- **Pasillos:** las estanterías se agrupan de cinco en cinco, en orden alfabético. A–E forman el pasillo 1, F–J el pasillo 2, y así. Cada pasillo es una línea vertical, y los pasillos quedan uno al lado del otro.
+- **Calle transversal:** la entrada está arriba a la izquierda, y una calle horizontal la une con todos los pasillos.
+- **Estanterías = franjas horizontales** a la derecha de cada pasillo. Se ordenan alfabéticamente dentro de su pasillo. Cada franja se puede tocar para abrir su vista de frente.
 - **Estantes y divisiones no se dibujan en el plano general.** El plano general solo muestra dónde está cada estantería; el detalle de estante y división está en la vista de frente.
 - **Pasillo principal:** corre por la columna 0, a la izquierda de todos los estantes.
 - **Entrada:** a la izquierda del depósito, a la altura del centro, de frente a las cabeceras de las estanterías (los extremos de cada fila).
@@ -44,8 +46,8 @@ Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto
 
 Para llegar a una ubicación con estantería `E`, estante `N` y división `d`:
 
-1. Entrar por la **entrada** (a la izquierda, de frente a las cabeceras).
-2. Recorrer el **pasillo principal** (columna 0) hasta la franja de la estantería `E`.
+1. Entrar por la **entrada** (arriba a la izquierda) y avanzar por la **calle transversal** hasta el pasillo de la estantería `E`.
+2. Bajar por ese **pasillo** hasta la franja de la estantería `E`.
 
 En el plano general la ruta termina en la franja de la estantería `E`. El estante `N` y la división `d` se ven en la **vista de frente** de esa estantería, con la celda destino resaltada.
 
