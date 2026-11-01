@@ -52,7 +52,9 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 ## 2026-10-31 (camino más corto)
 
-**El depósito es una cuadrícula y la ruta es el camino más corto.** Las estanterías son bloques que no se atraviesan, y el resto es espacio libre. La ruta sale de la entrada y termina en el lado más cercano de la estantería destino, con búsqueda en anchura. Se reemplazó la ruta fija (entrada → calle → pasillo), porque no contemplaba los caminos alternativos ni el lado más cercano de cada estantería.
+**El depósito es una cuadrícula y la ruta es el camino más corto.** Las estanterías son bloques que no se atraviesan, y el resto es espacio libre. La ruta sale de la entrada, con búsqueda en anchura, y termina al frente de la estantería destino (la cara de estantes y divisiones). Se reemplazó la ruta fija (entrada → calle → pasillo), porque no contemplaba los caminos alternativos.
+
+**La ruta termina siempre al frente de la estantería, no en cualquier lado.** Se corrigió la versión que aceptaba cualquier lado: el usuario espera llegar a la cara que muestra la vista de frente y el recuadro 3D.
 
 ## 2026-10-31 (datos de prueba al iniciar)
 

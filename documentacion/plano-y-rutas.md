@@ -20,7 +20,8 @@ El depósito es una cuadrícula de celdas, armada a partir de las estanterías c
 
 - **Estanterías = bloques que no se atraviesan.** Cada una ocupa 5 × 2 celdas.
 - **Agrupación en pasillos:** las estanterías se ordenan alfabéticamente y se agrupan de cinco en cinco. A–E forman el pasillo 1 (una columna de bloques), F–J el pasillo 2, y así. Cada pasillo queda a la derecha del anterior.
-- **Espacio libre:** todo lo que no es estantería es libre: calles, pasillos y los cuatro lados de cada estantería. Por eso la ruta puede rodear cualquier estantería por el lado que le convenga.
+- **Espacio libre:** todo lo que no es estantería es libre: calles y pasillos. La ruta puede rodear las estanterías por las calles.
+- **Frente de la estantería:** es la cara donde se leen los estantes (a la izquierda) y las divisiones (arriba), la misma que muestra la vista de frente y el recuadro 3D. Es la fila libre justo debajo de la estantería en el plano.
 - **Entrada:** en la pared izquierda, a mitad de altura.
 
 Al agregar estanterías, solo cambia la cuadrícula. No hay caminos que recrear a mano.
@@ -43,9 +44,9 @@ La ruta se calcula con una búsqueda en anchura (BFS) sobre la cuadrícula:
 
 1. Se parte de la entrada.
 2. Se recorren solo celdas libres (las estanterías no se atraviesan).
-3. Se termina en la primera celda libre que toca cualquier lado de la estantería destino.
+3. Se termina en la celda libre justo delante del frente de la estantería destino.
 
-Así el camino es el más corto posible, y la ruta elige el lado de la estantería que quede más cerca. Los pasos que se muestran son tres: entrar, caminar hasta el lado más cercano de la estantería y buscar estante y división en la vista de frente.
+Así el camino es el más corto posible hasta el frente, que es donde se busca el estante y la división. Los pasos que se muestran son tres: entrar, caminar hasta el frente de la estantería y buscar estante y división en la vista de frente.
 
 ## Cómo se llega a la vista
 

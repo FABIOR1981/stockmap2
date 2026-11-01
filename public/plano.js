@@ -63,13 +63,12 @@
     };
   }
 
-  // Camino más corto (en pasos de celda) desde la entrada hasta un lado libre de la estantería destino.
+  // Camino más corto (en pasos de celda) desde la entrada hasta el frente de la estantería destino.
   // Devuelve { puntos, pasos } o null si la ubicación no tiene posición en el plano.
   function calcularRuta(plano, ubicacion) {
     const banda = plano.bandas[ubicacion.pasillo];
     if (!banda || !esNumero(ubicacion.estante)) return null;
 
-    const dentroDeBanda = (x, y) => x >= banda.x0 && x <= banda.x1 && y >= banda.y0 && y <= banda.y1;
     const libre = (x, y) =>
       x >= 0 && y >= 0 && x < plano.W && y < plano.H && !plano.obstaculos.has(`${x},${y}`);
     const vecinos = (x, y) => [
@@ -78,8 +77,9 @@
       [x, y + 1],
       [x, y - 1],
     ];
-    // Un lado de la estantería: celda libre que toca la estantería destino.
-    const esLadoDestino = (x, y) => libre(x, y) && vecinos(x, y).some(([nx, ny]) => dentroDeBanda(nx, ny));
+    // Frente de la estantería: la cara donde se leen los estantes y las divisiones (la que se ve en la vista de frente
+    // y en el recuadro de detalle). Es la fila libre justo debajo de la estantería en el plano.
+    const esFrenteDestino = (x, y) => libre(x, y) && y === banda.y1 + 1 && x >= banda.x0 && x <= banda.x1;
 
     const inicio = plano.entrada;
     const clave = (x, y) => `${x},${y}`;
@@ -89,7 +89,7 @@
 
     while (cola.length) {
       const actual = cola.shift();
-      if (esLadoDestino(actual.x, actual.y)) {
+      if (esFrenteDestino(actual.x, actual.y)) {
         fin = actual;
         break;
       }
@@ -110,7 +110,7 @@
       puntos,
       pasos: [
         "Entrá por la entrada del depósito, por la pared izquierda.",
-        `Caminá por el depósito hasta el lado más cercano de la estantería ${ubicacion.pasillo}.`,
+        `Caminá hasta el frente de la estantería ${ubicacion.pasillo}, donde se leen los estantes y las divisiones.`,
         `Buscá el estante ${ubicacion.estante}, división ${ubicacion.nivel}, en la vista de frente de la estantería ${ubicacion.pasillo}.`,
       ],
     };

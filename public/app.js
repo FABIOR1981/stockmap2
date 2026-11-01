@@ -338,7 +338,7 @@ function dibujarPlano(plano, contenedores, destino) {
   );
   partes.push(`<circle cx="${px(entrada.x) + CELDA / 2}" cy="${py(entrada.y) + CELDA / 2}" r="6" fill="#4f5c69"/>`);
 
-  // Ruta más corta hasta el lado más cercano de la estantería destino.
+  // Ruta más corta hasta el frente de la estantería destino.
   // El detalle de estante y división está en la vista de frente.
   if (ruta) {
     const puntos = ruta.puntos.map((p) => centro(p.x, p.y)).join(" ");
