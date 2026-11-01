@@ -316,9 +316,9 @@ $("#form-ruta").addEventListener("submit", async (e) => {
       porUbicacion.get(u.id).codigos.push(c.codigo);
     }
 
-    const conRetorno = $("#ruta-retorno").checked;
+    // El recorrido siempre vuelve a la entrada.
     const resultado = porUbicacion.size
-      ? Plano.planificarRecorrido(plano, [...porUbicacion.values()].map((p) => p.ubicacion), { retorno: conRetorno })
+      ? Plano.planificarRecorrido(plano, [...porUbicacion.values()].map((p) => p.ubicacion), { retorno: true })
       : null;
 
     // Mensaje de resumen: qué se encontró, qué no y cuánto camina.
