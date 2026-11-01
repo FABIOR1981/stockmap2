@@ -228,70 +228,54 @@ function dibujarPlano(plano, contenedores, destino) {
     $("#plano-pasos").innerHTML = "";
   }
 
-  // Geometría del dibujo
-  const PASO_X = 36; // separación horizontal entre columnas del plano (los estantes no se dibujan aquí)
-  const PASO_Y = 84;
-  const TOP = 80;
-  const IZQ = 110;
-  const X = (col) => IZQ + col * PASO_X;
-  const Y = (fila) => TOP + fila * PASO_Y + PASO_Y / 2;
-  const { paso, maxEstante, corredores, filasPorPasillo } = plano;
-  const ultimoPasillo = Math.max(0, corredores - 1) * paso; // columna del último pasillo
-  // Cada pasillo es una franja vertical (de ancho 22). Las estanterías van a su derecha, sin tocarlo.
-  const SEPARACION = 14; // espacio entre el pasillo y la franja de la estantería
-  const bandaAncho = 170;
-  const ancho = X(ultimoPasillo) + SEPARACION + bandaAncho + 24;
-  const alto = TOP + filasPorPasillo * PASO_Y + 24;
-  // Entrada arriba a la izquierda; la calle transversal (fila -1) une los pasillos.
-  const yCalle = -1;
+  // Geometría: cada celda de la cuadrícula es un cuadrado de CELDA píxeles.
+  const CELDA = 26;
+  const IZQ = 64; // margen izquierdo, para la etiqueta de la entrada
+  const TOP = 16;
+  const px = (x) => IZQ + x * CELDA;
+  const py = (y) => TOP + y * CELDA;
+  const centro = (x, y) => `${px(x) + CELDA / 2},${py(y) + CELDA / 2}`;
+  const { W, H } = plano;
+  const ancho = px(W) + 24;
+  const alto = py(H) + 16;
 
   const partes = [];
 
-  // Pasillos (líneas verticales) y calle transversal con la entrada.
-  // Van primero, para que las franjas queden por encima en el dibujo.
-  if (corredores > 0) {
-    for (let c = 0; c < corredores; c++) {
-      partes.push(
-        `<line x1="${X(c * paso)}" y1="${Y(yCalle)}" x2="${X(c * paso)}" y2="${Y(filasPorPasillo - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
-      );
-    }
-    partes.push(
-      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
-    );
-    // Pared izquierda: franja desde la calle superior hasta el fondo del galpón.
-    partes.push(
-      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(-1)}" y2="${Y(filasPorPasillo - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
-    );
-    const xEntrada = X(plano.entrada.x);
-    const yEntrada = Y(plano.entrada.y);
-    partes.push(
-      `<text x="${xEntrada - 16}" y="${yEntrada + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
-    );
-    partes.push(`<circle cx="${xEntrada}" cy="${yEntrada}" r="6" fill="#4f5c69"/>`);
-  }
+  // Piso del depósito: todo lo que no es estantería es espacio libre por donde se camina.
+  partes.push(
+    `<rect x="${px(0)}" y="${py(0)}" width="${W * CELDA}" height="${H * CELDA}" rx="8" fill="#f4f7f9" stroke="#c9d3dd"/>`
+  );
 
-  // Franjas de estanterías, cada una tocable, con su letra dentro; la del destino se resalta.
+  // Estanterías: bloques que no se atraviesan, tocables; la del destino se resalta.
   plano.estanterias.forEach((letra) => {
-    const pos = plano.posicion[letra];
-    const x0 = X(pos.corredor * paso) + SEPARACION;
+    const b = plano.bandas[letra];
     const esDestino = destino && destino.pasillo === letra;
+    const ancho = (b.x1 - b.x0 + 1) * CELDA;
+    const alto = (b.y1 - b.y0 + 1) * CELDA;
     partes.push(
       `<g data-pasillo="${escapar(letra)}" style="cursor:pointer">
         <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
-        <rect x="${x0}" y="${Y(pos.fila) - 34}" width="${bandaAncho}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#c9d3dd"}" stroke-width="${esDestino ? 2 : 1}"/>
-        <text x="${x0 + 14}" y="${Y(pos.fila) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(letra)}</text>
+        <rect x="${px(b.x0)}" y="${py(b.y0)}" width="${ancho}" height="${alto}" rx="6" fill="${esDestino ? "#e2eeed" : "#dfe6ec"}" stroke="${esDestino ? "#1f5f5b" : "#9aa8b6"}" stroke-width="${esDestino ? 2 : 1}"/>
+        <text x="${px(b.x0) + 8}" y="${py(b.y0) + alto / 2 + 5}" font-size="14" font-weight="700" fill="#14202b">${escapar(letra)}</text>
       </g>`
     );
   });
 
-  // Ruta hasta la estantería destino (el detalle de estante y división está en la vista de frente).
-  // Va hasta el pasillo, a la altura de la franja: no entra en la franja.
+  // Entrada: en la pared izquierda, a mitad de altura.
+  const { entrada } = plano;
+  partes.push(
+    `<text x="${px(0) - 8}" y="${py(entrada.y) + CELDA / 2 + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
+  );
+  partes.push(`<circle cx="${px(entrada.x) + CELDA / 2}" cy="${py(entrada.y) + CELDA / 2}" r="6" fill="#4f5c69"/>`);
+
+  // Ruta más corta hasta el lado más cercano de la estantería destino.
+  // El detalle de estante y división está en la vista de frente.
   if (ruta) {
-    const puntos = ruta.puntos.map((p) => `${X(p.x)},${Y(p.y)}`).join(" ");
+    const puntos = ruta.puntos.map((p) => centro(p.x, p.y)).join(" ");
     partes.push(
       `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(plano.entrada.x)}" cy="${Y(plano.entrada.y)}" r="6" fill="#1f5f5b"/>`);
+    partes.push(`<circle cx="${px(entrada.x) + CELDA / 2}" cy="${py(entrada.y) + CELDA / 2}" r="6" fill="#1f5f5b"/>`);
   }
 
   $("#plano-svg").innerHTML =

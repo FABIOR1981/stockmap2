@@ -50,6 +50,10 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Pasillos por grupos de estanterías.** Las estanterías se agrupan de cinco en cinco, en orden alfabético (A–E en el pasillo 1, F–J en el pasillo 2). Se eligió así para no cambiar el formato de la ubicación (A · 1 · a). Si el depósito necesita otra agrupación, se cambia la constante `ESTANTERIAS_POR_PASILLO` en `plano.js`.
 
+## 2026-10-31 (camino más corto)
+
+**El depósito es una cuadrícula y la ruta es el camino más corto.** Las estanterías son bloques que no se atraviesan, y el resto es espacio libre. La ruta sale de la entrada y termina en el lado más cercano de la estantería destino, con búsqueda en anchura. Se reemplazó la ruta fija (entrada → calle → pasillo), porque no contemplaba los caminos alternativos ni el lado más cercano de cada estantería.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).

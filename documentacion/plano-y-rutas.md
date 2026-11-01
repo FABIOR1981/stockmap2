@@ -1,6 +1,6 @@
 # Plano y rutas
 
-Archivos: `public/plano.js` (cálculo puro) y la vista **Plano** de `public/app.js` y `public/index.html`.
+Archivos: `public/plano.js` (cálculo puro: cuadrícula y ruta) y la vista **Plano** de `public/app.js` y `public/index.html`.
 
 ## Formato de la ubicación
 
@@ -14,19 +14,18 @@ Cada ubicación tiene tres partes:
 
 Una ubicación completa se muestra como `A · 1 · a`.
 
-## Modelo del plano (automático)
+## Modelo del depósito: cuadrícula
 
-El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones: se deducen de la estantería y el estante.
+El depósito es una cuadrícula de celdas, armada a partir de las estanterías cargadas:
 
-- **Pasillos:** las estanterías se agrupan de cinco en cinco, en orden alfabético. A–E forman el pasillo 1, F–J el pasillo 2, y así. Cada pasillo es una línea vertical, y los pasillos quedan uno al lado del otro.
-- **Calle transversal:** una calle horizontal une todos los pasillos, en la cabecera del galpón. La **entrada** está en el medio de esa calle.
-- **Estanterías = franjas horizontales** a la derecha de cada pasillo. Se ordenan alfabéticamente dentro de su pasillo. Cada franja se puede tocar para abrir su vista de frente.
-- **Estantes y divisiones no se dibujan en el plano general.** El plano general solo muestra dónde está cada estantería; el detalle de estante y división está en la vista de frente.
-- **Pasillo principal:** corre por la columna 0, a la izquierda de todos los estantes.
-- **Entrada:** a la izquierda del depósito, a la altura del centro, de frente a las cabeceras de las estanterías (los extremos de cada fila).
-- **Pasillo principal:** corre por las cabeceras de las estanterías, a la izquierda de los estantes.
+- **Estanterías = bloques que no se atraviesan.** Cada una ocupa 5 × 2 celdas.
+- **Agrupación en pasillos:** las estanterías se ordenan alfabéticamente y se agrupan de cinco en cinco. A–E forman el pasillo 1 (una columna de bloques), F–J el pasillo 2, y así. Cada pasillo queda a la derecha del anterior.
+- **Espacio libre:** todo lo que no es estantería es libre: calles, pasillos y los cuatro lados de cada estantería. Por eso la ruta puede rodear cualquier estantería por el lado que le convenga.
+- **Entrada:** en la pared izquierda, a mitad de altura.
 
-Este es un modelo simplificado. Si el depósito real no sigue esa forma, el plano automático no lo refleja fielmente. Ver "Pendiente".
+Al agregar estanterías, solo cambia la cuadrícula. No hay caminos que recrear a mano.
+
+Constantes en `plano.js`: `ESTANTERIAS_POR_PASILLO` (5), `ANCHO`, `ALTO`, `SEPARACION_PASILLOS` y `ALTO_FILA`.
 
 ## Vista de la estantería (de frente)
 
@@ -38,32 +37,25 @@ Complementa el plano general con el detalle de una estantería:
 - **Cómo se abre:** automáticamente al pedir "Cómo llegar" (muestra la estantería del destino), o tocando una estantería en el plano general.
 - **Detalle:** tocar una celda muestra los códigos de los contenedores que hay ahí.
 
-## Estantes sin posición
+## Cálculo de la ruta: camino más corto
 
-Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto no debería pasar con el formato obligatorio, pero puede ocurrir con datos cargados antes de esa validación. Se lista debajo del dibujo y no se puede llegar a ella con una ruta.
+La ruta se calcula con una búsqueda en anchura (BFS) sobre la cuadrícula:
 
-## Cálculo de la ruta
+1. Se parte de la entrada.
+2. Se recorren solo celdas libres (las estanterías no se atraviesan).
+3. Se termina en la primera celda libre que toca cualquier lado de la estantería destino.
 
-Para llegar a una ubicación con estantería `E`, estante `N` y división `d`:
-
-1. Entrar por la **entrada** (en el medio de la calle transversal) y avanzar por la **calle** hasta el pasillo de la estantería `E`.
-2. Bajar por ese **pasillo** hasta la franja de la estantería `E`.
-
-En el plano general la ruta termina en la franja de la estantería `E`. El estante `N` y la división `d` se ven en la **vista de frente** de esa estantería, con la celda destino resaltada.
-
-No se calcula un camino más corto: el recorrido sigue siempre esa forma.
-
-## Pasos que se muestran
-
-- "Entrá por la entrada del depósito, de frente a las cabeceras de las estanterías."
-- "Recorré el pasillo principal hasta la estantería E."
-- "Buscá el estante N, división d, en la vista de frente de la estantería E."
+Así el camino es el más corto posible, y la ruta elige el lado de la estantería que quede más cerca. Los pasos que se muestran son tres: entrar, caminar hasta el lado más cercano de la estantería y buscar estante y división en la vista de frente.
 
 ## Cómo se llega a la vista
 
 - **Menú → Plano:** muestra todo el depósito, sin ruta.
-- **Contenedores → Cómo llegar:** abre el plano con la ruta hasta la ubicación del contenedor y el estante destino resaltado.
+- **Contenedores → Cómo llegar:** abre el plano con la ruta más corta hasta la estantería del contenedor, y abre su vista de frente con la celda resaltada.
 - Un contenedor sin ubicación muestra "Sin ubicación" en lugar del botón.
+
+## Estantes sin posición
+
+Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto no debería pasar con el formato obligatorio, pero puede ocurrir con datos cargados antes de esa validación. Se lista debajo del dibujo y no se puede llegar a ella con una ruta.
 
 ## Qué no depende de la persistencia
 
@@ -71,7 +63,7 @@ El plano usa solo la lista de ubicaciones y de contenedores que ya devuelve la i
 
 ## Pendiente
 
-- Plano manual: definir el tamaño real del depósito, las paredes y la posición exacta de cada estante.
-- Ruta por el camino más corto cuando haya varios caminos posibles.
+- Plano manual: tamaño real del depósito, paredes, puertas y posición exacta de cada estantería. Hoy la cuadrícula es un modelo fijo.
+- Estanterías de distinto tamaño (hoy todas ocupan 5 × 2 celdas).
 - Vista 3D (módulo final del proyecto).
 - Revisión en navegador real, escritorio y celular.
