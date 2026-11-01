@@ -64,6 +64,12 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **El plano 3D se trae antes de lo previsto.** Se había decidido dejarlo para el final, pero se pidió incorporar la idea del plano 3D del repositorio `FABIOR1981/stockmap` (rama `desarrollo`). Se hizo una versión propia sobre la cuadrícula de este proyecto, no una copia: aquel código usa otro modelo de datos. Se usa Three.js en su versión local (`public/vendor/`).
 
+## 2026-11-01 (diseño 3D elegido)
+
+**Diseño del plano 3D elegido por el usuario, a partir de una página de opciones.** Estanterías metálicas (postes oscuros, tablas grises); cajas de cartón con cinta; bolsa tejida; pallet con film; tarro metálico; cubo genérico para "otro"; piso epóxico oscuro con franja blanca; entrada en hueco con cartel; ruta con flechas.
+
+**"Tambor" se llama "Tarro" en la interfaz.** Es como lo nombra el usuario. El valor interno (`tambor`) no cambia, así que no hay que migrar datos. Solo cambia el nombre que se muestra (`NOMBRE_TIPO` en `app.js`).
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).

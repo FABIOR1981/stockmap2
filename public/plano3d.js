@@ -40,7 +40,7 @@
 
   // Ruta: una franja plana por cada tramo recto entre dos puntos de la cuadrícula.
   function dibujarRuta(plano, puntos, escena) {
-    const material = new THREE.MeshLambertMaterial({ color: 0x1f5f5b, emissive: 0x0b2b28 });
+    const material = new THREE.MeshLambertMaterial({ color: 0x2ec4a6, emissive: 0x0b4a40 });
     for (let i = 1; i < puntos.length; i++) {
       const a = aMundo(plano, puntos[i - 1].x + 0.5, puntos[i - 1].y + 0.5);
       const b = aMundo(plano, puntos[i].x + 0.5, puntos[i].y + 0.5);
@@ -51,6 +51,14 @@
       );
       franja.position.set((a.x + b.x) / 2, 0.12, (a.z + b.z) / 2);
       escena.add(franja);
+      // Flecha en el medio del tramo, apuntando hacia el siguiente punto de la ruta.
+      const flecha = new THREE.Group();
+      flecha.position.set((a.x + b.x) / 2, 0.2, (a.z + b.z) / 2);
+      flecha.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
+      const punta = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.32, 12), material);
+      punta.rotation.x = Math.PI / 2;
+      flecha.add(punta);
+      escena.add(flecha);
     }
   }
 
@@ -93,31 +101,28 @@
     const liso = (color) => new THREE.MeshLambertMaterial({ color });
     const conTextura = (mapa) => new THREE.MeshLambertMaterial({ map: mapa });
     if (tipo === "bolsa") {
-      // Bolsa: esfera achatada con la superficie levemente irregular y un cierre arriba.
-      const geo = new THREE.SphereGeometry(0.5, 20, 14);
-      const pos = geo.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        const ruido = 1 + 0.05 * Math.sin(x * 9 + z * 5) * Math.cos(y * 7);
-        pos.setXYZ(i, x * ruido, y * ruido, z * ruido);
-      }
-      geo.computeVertexNormals();
-      const bolsa = new THREE.Mesh(geo, liso(0xe9e2d0));
-      bolsa.scale.set(ancho, 0.4, fondo * 0.8);
-      bolsa.position.y = 0.2;
+      // Bolsa tejida: cuerpo ancho que se angosta hacia un cuello, atado con un ajuste.
+      const perfil = [[0.001, 0], [0.28, 0.01], [0.38, 0.15], [0.36, 0.32], [0.24, 0.44], [0.1, 0.5], [0.11, 0.55], [0.13, 0.58], [0.001, 0.6]]
+        .map(([r, y]) => new THREE.Vector2(r, y));
+      const bolsa = new THREE.Mesh(new THREE.LatheGeometry(perfil, 24), liso(0xe9e2d0));
+      bolsa.scale.set(ancho * 1.3, 0.7, fondo * 1.3);
       g.add(bolsa);
-      const cierre = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.1, 10), liso(0xc9bfa8));
-      cierre.scale.set(ancho, 1, fondo * 0.8);
-      cierre.position.y = 0.42;
-      g.add(cierre);
+      const ajuste = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 8, 20), liso(0x9c8f72));
+      ajuste.rotation.x = Math.PI / 2;
+      ajuste.scale.set(ancho * 1.3, fondo * 1.3, 1);
+      ajuste.position.y = 0.55 * 0.7;
+      g.add(ajuste);
     } else if (tipo === "tambor") {
-      // Tambor: cilindro con dos zunchos metálicos.
+      // Tarro metálico: cilindro gris con aros arriba y abajo, y tapa.
       const r = Math.min(ancho, fondo) * 0.4;
-      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0x3d6fb0));
+      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0x7d8a97));
       cuerpo.position.y = 0.21;
       g.add(cuerpo);
+      const tapa = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 1.02, 0.03, 22), liso(0x5f6b77));
+      tapa.position.y = 0.435;
+      g.add(tapa);
       [0.06, 0.36].forEach((y) => {
-        const zuncho = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.02, 6, 22), liso(0xb8c2cc));
+        const zuncho = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.02, 6, 22), liso(0x4a5560));
         zuncho.rotation.x = Math.PI / 2;
         zuncho.position.y = y;
         g.add(zuncho);
@@ -132,13 +137,16 @@
       const carton = conTextura(t.carton);
       g.add(caja(ancho * 0.7, 0.2, fondo * 0.5, carton, 0, 0.22, 0));
       g.add(caja(ancho * 0.6, 0.16, fondo * 0.45, carton, 0.03, 0.4, 0));
+      // Film de embalaje transparente que envuelve la carga.
+      g.add(caja(ancho * 0.74, 0.4, fondo * 0.52, new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 }), 0, 0.3, 0));
     } else if (tipo === "otro") {
-      // Cajón de madera: cuerpo de tablas y marco.
-      g.add(caja(ancho * 0.8, 0.3, fondo * 0.6, conTextura(t.madera), 0, 0.15, 0));
-      g.add(caja(ancho * 0.84, 0.03, fondo * 0.64, liso(0x6b4e30), 0, 0.3, 0));
+      // Cubo genérico gris con tapa oscura.
+      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, liso(0x8e969e), 0, 0.2, 0));
+      g.add(caja(ancho * 0.84, 0.04, fondo * 0.64, liso(0x5b636c), 0, 0.42, 0));
     } else {
-      // Caja de cartón con cinta.
+      // Caja de cartón con cinta de embalar sobre la tapa.
       g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, conTextura(t.carton), 0, 0.2, 0));
+      g.add(caja(ancho * 0.16, 0.02, fondo * 0.62, liso(0xe8dcc0), 0, 0.41, 0));
     }
     return g;
   }
@@ -162,9 +170,9 @@
     const h = ALTO_ESTANTERIA / n;
     const anchoBahia = ancho / bahias;
 
-    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x1e4e8c });
-    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0xe07a1f });
-    const tabla = new THREE.MeshLambertMaterial({ color: 0xb8c2cc });
+    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x4a525c });
+    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x2b2f36 });
+    const tabla = new THREE.MeshLambertMaterial({ color: 0x9aa3ad });
 
     // Postes en cada límite de bahía, al frente y al fondo.
     for (let i = 0; i <= bahias; i++) {
@@ -208,6 +216,34 @@
     return grupo;
   }
 
+  // Entrada en forma de hueco: dos muros con un paso al centro, un dintel y un cartel verde "ENTRADA".
+  function entradaHueco(x, z) {
+    const g = new THREE.Group();
+    const muro = new THREE.MeshLambertMaterial({ color: 0xdfe3e7 });
+    g.add(caja(0.25, 2.4, 0.9, muro, x, 1.2, z - 1.0));
+    g.add(caja(0.25, 2.4, 0.9, muro, x, 1.2, z + 1.0));
+    g.add(caja(0.25, 0.4, 2.0, muro, x, 2.2, z));
+    const c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 128;
+    const cg = c.getContext("2d");
+    cg.fillStyle = "#1f7a72";
+    cg.fillRect(0, 0, 512, 128);
+    cg.fillStyle = "#ffffff";
+    cg.font = "bold 80px sans-serif";
+    cg.textAlign = "center";
+    cg.textBaseline = "middle";
+    cg.fillText("ENTRADA", 256, 68);
+    const cartel = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.6, 0.4),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) })
+    );
+    cartel.position.set(x + 0.14, 2.7, z);
+    cartel.rotation.y = Math.PI / 2;
+    g.add(cartel);
+    return g;
+  }
+
   function desmontar() {
     desmontarDetalle();
     if (!mot) return;
@@ -238,20 +274,20 @@
     Object.assign(sol.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 50 });
     escena.add(sol);
 
-    // Piso del depósito, con la línea amarilla de seguridad alrededor.
+    // Piso epóxico oscuro, con una franja blanca alrededor.
     const piso = new THREE.Mesh(
       new THREE.PlaneGeometry(plano.W, plano.H),
-      new THREE.MeshLambertMaterial({ color: 0xe6eaee })
+      new THREE.MeshLambertMaterial({ color: 0x3d4650 })
     );
     piso.rotation.x = -Math.PI / 2;
     piso.receiveShadow = true;
     escena.add(piso);
-    const amarillo = new THREE.MeshLambertMaterial({ color: 0xe8b82a });
+    const franjaBlanca = new THREE.MeshLambertMaterial({ color: 0xf2f2f2 });
     const m = 0.12;
-    escena.add(caja(plano.W, 0.02, m, amarillo, 0, 0.011, -plano.H / 2 + m / 2));
-    escena.add(caja(plano.W, 0.02, m, amarillo, 0, 0.011, plano.H / 2 - m / 2));
-    escena.add(caja(m, 0.02, plano.H, amarillo, -plano.W / 2 + m / 2, 0.011, 0));
-    escena.add(caja(m, 0.02, plano.H, amarillo, plano.W / 2 - m / 2, 0.011, 0));
+    escena.add(caja(plano.W, 0.02, m, franjaBlanca, 0, 0.011, -plano.H / 2 + m / 2));
+    escena.add(caja(plano.W, 0.02, m, franjaBlanca, 0, 0.011, plano.H / 2 - m / 2));
+    escena.add(caja(m, 0.02, plano.H, franjaBlanca, -plano.W / 2 + m / 2, 0.011, 0));
+    escena.add(caja(m, 0.02, plano.H, franjaBlanca, plano.W / 2 - m / 2, 0.011, 0));
 
     // Estanterías de logística: estructura con postes, vigas y tablas por nivel; cajas donde hay contenedores.
     plano.estanterias.forEach((letra) => {
@@ -264,14 +300,9 @@
       escena.add(et);
     });
 
-    // Entrada: marcador en la pared izquierda, a mitad de altura.
-    const entrada = aMundo(plano, plano.entrada.x + 0.5, plano.entrada.y + 0.5);
-    const marcador = new THREE.Mesh(
-      new THREE.SphereGeometry(0.3, 16, 12),
-      new THREE.MeshLambertMaterial({ color: 0x4f5c69 })
-    );
-    marcador.position.set(entrada.x, 0.35, entrada.z);
-    escena.add(marcador);
+    // Entrada: hueco en la pared izquierda, a mitad de altura.
+    const entrada = aMundo(plano, plano.entrada.x, plano.entrada.y + 0.5);
+    escena.add(entradaHueco(entrada.x, entrada.z));
 
     if (puntosRuta && puntosRuta.length > 1) dibujarRuta(plano, puntosRuta, escena);
 
@@ -429,7 +460,7 @@
     const sol = new THREE.DirectionalLight(0xffffff, 0.7);
     sol.position.set(3, 6, 6);
     escena.add(sol);
-    const piso = new THREE.Mesh(new THREE.PlaneGeometry(8, 6), new THREE.MeshLambertMaterial({ color: 0xe6eaee }));
+    const piso = new THREE.Mesh(new THREE.PlaneGeometry(8, 6), new THREE.MeshLambertMaterial({ color: 0x3d4650 }));
     piso.rotation.x = -Math.PI / 2;
     escena.add(piso);
     escena.add(construirEstanteria3D(plano, destino.pasillo, contenidoPorUbicacion, true));

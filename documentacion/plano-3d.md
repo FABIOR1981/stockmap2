@@ -5,8 +5,8 @@ Archivos: `public/plano3d.js` (la vista) y `public/vendor/three.min.js` (Three.j
 ## Qué muestra
 
 - El mismo depósito que el plano 2D. Cada estantería se dibuja como estantería de logística: postes, vigas al frente y al fondo, y una tabla por cada estante (el 1 abajo). Las divisiones son las bahías, de izquierda a derecha. Se lee igual que la vista de frente: el número de estante a la izquierda (el 1 arriba), la letra de división arriba, y cada contenedor en su celda.
-- Cada contenedor se dibuja con la forma de su tipo sobre la tabla: caja de cartón, bolsa chata, tambor (cilindro), pallet (base de madera con carga) y otro (cubo gris). Si una ubicación tiene varios, van uno al lado del otro.
-- Las formas tienen texturas de cartón y madera, las bolsas son irregulares con cierre, los tambores tienen zunchos y los pallets tienen tablas.
+- Cada contenedor se dibuja con la forma de su tipo sobre la tabla: caja de cartón con cinta, bolsa tejida, tarro metálico (cilindro con aros), pallet con film y otro (cubo gris). Si una ubicación tiene varios, van uno al lado del otro.
+- Las estanterías son metálicas (postes y vigas oscuros, tablas grises). El piso es epóxico oscuro con franja blanca. La entrada es un hueco en la pared izquierda con un cartel "ENTRADA". La ruta es una franja verde con flechas que apuntan hacia el destino.
 - Hay sombras y una línea amarilla de seguridad alrededor del piso.
 - La entrada es una esfera en la pared izquierda, y cada estantería tiene su letra arriba.
 - Si hubo una búsqueda o un "Cómo llegar", la estantería destino se resalta en verde y la ruta más corta se dibuja en verde sobre el piso.

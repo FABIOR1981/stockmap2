@@ -133,7 +133,7 @@ async function cargarSelectorClientes() {
 
 async function cargarTiposContenedor() {
   $("#tipo").innerHTML = P.tiposContenedor
-    .map((t) => `<option value="${t}">${capitalizar(t)}</option>`)
+    .map((t) => `<option value="${t}">${nombreTipo(t)}</option>`)
     .join("");
 }
 
@@ -186,7 +186,7 @@ async function cargarContenedores() {
           return `
           <tr>
             <td><strong>${escapar(c.codigo)}</strong>${c.codigoPropio ? `<br><span class="muted">Producto: ${escapar(c.codigoPropio)}</span>` : ""}</td>
-            <td>${escapar(capitalizar(c.tipo))}</td>
+            <td>${escapar(nombreTipo(c.tipo))}</td>
             <td>${escapar(ubic)}</td>
             <td>${escapar(c.descripcion || "")}</td>
             <td>
@@ -441,7 +441,7 @@ $("#estanteria-svg").addEventListener("click", (e) => {
   if (!u) return;
   const codigos = vistaPlano.contenedores
     .filter((c) => c.ubicacionId === u.id)
-    .map((c) => `${c.codigo} (${capitalizar(c.tipo)})`);
+    .map((c) => `${c.codigo} (${nombreTipo(c.tipo)})`);
   $("#estanteria-detalle").textContent =
     `${u.pasillo} · ${u.estante} · ${u.nivel}: ${codigos.length ? codigos.join(", ") : "sin contenedores"}`;
 });
@@ -541,6 +541,12 @@ function mostrarAviso(texto) {
 
 function capitalizar(texto) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+// Nombre que ve el usuario para cada tipo (el valor interno sigue siendo el mismo).
+const NOMBRE_TIPO = { caja: "Caja", bolsa: "Bolsa", pallet: "Pallet", tambor: "Tarro", otro: "Otro" };
+function nombreTipo(tipo) {
+  return NOMBRE_TIPO[tipo] || capitalizar(tipo);
 }
 
 function escapar(valor) {
