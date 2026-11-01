@@ -127,12 +127,12 @@
       background: var(--superficie);
       padding: 12px;
     }
-    .plano-svg svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
+    .plano-svg svg { display: block; max-width: none; }
     .nota { color: var(--tinta-suave); font-size: 0.88rem; margin: 12px 0 0; }
     .card .subtitulo { font-size: 0.98rem; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.01em; }
     .plano-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
     @media (min-width: 1000px) {
-      .plano-doble { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .plano-doble { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
     }
     .columna { min-width: 0; }
     .plano-svg g[data-pasillo]:hover rect,
