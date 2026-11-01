@@ -255,9 +255,7 @@
 
     // Carga un juego de ubicaciones y contenedores de ejemplo.
     // No duplica lo que ya exista: si se llama dos veces, la segunda no agrega nada.
-    const datosPrueba = {
-      async cargar(clienteId) {
-        exigirGestionUbicaciones(clienteId);
+    function generarDatosPrueba(clienteId) {
 
         // Diez estanterías (A a J) en dos pasillos de cinco, cuatro estantes por estantería y tres divisiones por estante.
         const ESTANTERIAS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
@@ -342,8 +340,19 @@
         }
 
         return { ubicacionesCreadas, contenedoresCreados };
+    }
+
+    const datosPrueba = {
+      async cargar(clienteId) {
+        exigirGestionUbicaciones(clienteId);
+        return generarDatosPrueba(clienteId);
       },
     };
+
+    // Solo desarrollo: carga los datos de prueba al iniciar. La memoria se pierde al recargar la página,
+    // así se puede entrar como administrador o como operador sin cargarlos de nuevo. Poner en false antes de publicar.
+    const AUTO_DATOS_PRUEBA = true;
+    if (AUTO_DATOS_PRUEBA) generarDatosPrueba("c1");
 
     return {
       sesion,

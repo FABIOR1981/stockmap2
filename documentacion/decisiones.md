@@ -54,6 +54,10 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **El depósito es una cuadrícula y la ruta es el camino más corto.** Las estanterías son bloques que no se atraviesan, y el resto es espacio libre. La ruta sale de la entrada y termina en el lado más cercano de la estantería destino, con búsqueda en anchura. Se reemplazó la ruta fija (entrada → calle → pasillo), porque no contemplaba los caminos alternativos ni el lado más cercano de cada estantería.
 
+## 2026-10-31 (datos de prueba al iniciar)
+
+**Los datos de prueba se cargan al iniciar la app (solo desarrollo).** Como la memoria se pierde al recargar la página, había que volver a cargarlos cada vez que se cambiaba de usuario. Ahora `AUTO_DATOS_PRUEBA` los carga al arrancar. El botón "Cargar datos de prueba" sigue disponible para el administrador. Antes de publicar hay que poner `AUTO_DATOS_PRUEBA = false` en `persistencia.js`, junto con los usuarios de prueba.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).
