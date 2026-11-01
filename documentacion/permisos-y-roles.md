@@ -5,12 +5,12 @@
 | Rol | Clave interna | Qué puede hacer |
 |---|---|---|
 | Admin general | `admin_general` | Ve todos los clientes y opera sobre cualquiera, sin importar su suscripción. |
-| Admin de cliente | `admin_cliente` | Opera sobre los datos de su cliente, siempre que tenga acceso. |
-| Operador | `operador` | Opera sobre los datos de su cliente, siempre que tenga acceso. |
+| Admin de cliente | `admin_cliente` | Opera sobre los datos de su cliente, siempre que tenga acceso. Crea y borra ubicaciones. |
+| Operador | `operador` | Opera sobre los contenedores de su cliente, siempre que tenga acceso. Consulta las ubicaciones, pero no las crea ni las borra. |
 
 ## Estado actual
 
-Admin de cliente y operador tienen **los mismos permisos** por ahora. Lo que los va a diferenciar es la gestión de usuarios de cada cliente, que todavía no existe.
+Admin de cliente y operador se diferencian en las ubicaciones: solo el admin (general o de cliente) crea y borra ubicaciones. El operador puede cargar y dar de baja contenedores, y consultar el plano. La gestión de usuarios de cada cliente todavía no existe.
 
 ## Cómo se decide el acceso
 

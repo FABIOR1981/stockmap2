@@ -38,6 +38,12 @@ async function mostrarApp() {
     clienteActivo = perfil.clienteId;
   }
 
+  // El operador consulta ubicaciones pero no las crea ni borra.
+  const gestiona = perfil.puedeGestionarUbicaciones;
+  document.querySelectorAll('[data-alternar="panel-ubicacion"], #panel-ubicacion, #btn-datos-prueba').forEach((el) => {
+    el.classList.toggle("oculto", !gestiona);
+  });
+
   await cargarTiposContenedor();
   mostrarVista("contenedores");
   await cargarDatos();
@@ -157,7 +163,7 @@ async function cargarUbicaciones() {
             <td><strong>${escapar(u.pasillo)}</strong></td>
             <td>${escapar(u.estante)}</td>
             <td>${escapar(u.nivel)}</td>
-            <td><button class="peligro" data-id="${u.id}" data-accion="borrar-ubicacion">Borrar</button></td>
+            <td>${perfil.puedeGestionarUbicaciones ? `<button class="peligro" data-id="${u.id}" data-accion="borrar-ubicacion">Borrar</button>` : ""}</td>
           </tr>`
         )
         .join("") || `<tr><td colspan="4">Todavía no hay ubicaciones.</td></tr>`;

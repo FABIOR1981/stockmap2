@@ -72,8 +72,19 @@
         rol: usuario.rol,
         clienteId: usuario.clienteId,
         esAdminGeneral,
+        // Solo el administrador (general o del cliente) crea y borra ubicaciones. El operador solo consulta.
+        puedeGestionarUbicaciones: esAdminGeneral || usuario.rol === "admin_cliente",
         accesoActivo: esAdminGeneral ? true : clienteConAcceso(cliente),
       };
+    }
+
+    // Lanza error si el usuario actual no puede crear o borrar ubicaciones.
+    function exigirGestionUbicaciones(clienteId) {
+      exigirAcceso(clienteId);
+      const u = usuarioActual();
+      if (u.rol !== "admin_general" && u.rol !== "admin_cliente") {
+        throw fallo("Solo el administrador puede crear o borrar ubicaciones.");
+      }
     }
 
     // Lanza error si el usuario actual no puede operar sobre los datos de ese cliente.
@@ -143,7 +154,7 @@
       },
 
       async crear(clienteId, { pasillo, estante, nivel }) {
-        exigirAcceso(clienteId);
+        exigirGestionUbicaciones(clienteId);
         // pasillo = estantería (letras mayúsculas), estante = número, nivel = división (letras minúsculas).
         const p = (pasillo || "").trim().toUpperCase();
         const e = (estante || "").trim();
@@ -166,7 +177,7 @@
       async borrar(id) {
         const ubicacion = datos.ubicaciones.find((x) => x.id === id);
         if (!ubicacion) return;
-        exigirAcceso(ubicacion.clienteId);
+        exigirGestionUbicaciones(ubicacion.clienteId);
         if (datos.contenedores.some((c) => c.ubicacionId === id)) {
           throw fallo("Hay contenedores en esa ubicación. Movelos antes de borrarla.");
         }
@@ -246,7 +257,7 @@
     // No duplica lo que ya exista: si se llama dos veces, la segunda no agrega nada.
     const datosPrueba = {
       async cargar(clienteId) {
-        exigirAcceso(clienteId);
+        exigirGestionUbicaciones(clienteId);
 
         // Diez estanterías (A a J) en dos pasillos de cinco, cuatro estantes por estantería y tres divisiones por estante.
         const ESTANTERIAS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
