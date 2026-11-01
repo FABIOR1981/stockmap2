@@ -146,7 +146,7 @@ async function cargarUbicaciones() {
     const opciones = lista.map(
       (u) => `<option value="${u.id}">${escapar(u.pasillo)} · ${escapar(u.estante)} · ${escapar(u.nivel)}</option>`
     );
-    $("#ubicacion").innerHTML = `<option value="">Sin ubicación</option>` + opciones.join("");
+    $("#ubicacion").innerHTML = `<option value="">Asignar al azar (lugar libre)</option>` + opciones.join("");
 
     // Tabla de la vista Ubicaciones
     $("#tabla-ubicaciones").innerHTML =

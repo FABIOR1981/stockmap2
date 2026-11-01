@@ -27,6 +27,7 @@ Estas reglas están implementadas en `public/persistencia.js`. Si cambia una reg
 - **El código es obligatorio** y se recorta. Es único dentro de cada cliente, sin distinguir mayúsculas. Mensaje: "Ya existe un contenedor con el código X."
 - **El tipo** debe ser uno de `caja`, `bolsa`, `pallet`, `tambor`, `otro`. Mensaje: "Tipo de contenedor no válido."
 - **La ubicación es opcional.** Si se indica, debe pertenecer al mismo cliente. Mensaje: "La ubicación no pertenece a este cliente."
+- **Si no se indica ubicación, se asigna al azar una ubicación libre** (sin otros contenedores) del mismo cliente. Si no hay ninguna libre, no se guarda. Mensaje: "No hay ubicaciones libres en el depósito para asignar. Cargá más ubicaciones." Los datos de prueba cargan sus contenedores sin ubicación directamente, sin pasar por esta regla.
 - **La descripción es opcional**, de hasta 120 caracteres (el límite lo aplica el formulario). Debe describir el contenedor, nunca su contenido: el sistema no registra qué hay adentro.
 - Al borrar una ubicación, sus contenedores no se borran; por eso la regla de arriba impide esa baja.
 

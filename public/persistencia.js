@@ -203,12 +203,23 @@
           throw fallo("La ubicación no pertenece a este cliente.");
         }
 
+        // Sin ubicación indicada: se asigna al azar una ubicación libre (sin contenedores) del cliente.
+        let asignada = ubicacionId || null;
+        if (!asignada) {
+          const ocupadas = new Set(
+            datos.contenedores.filter((c) => c.clienteId === clienteId && c.ubicacionId).map((c) => c.ubicacionId)
+          );
+          const libres = datos.ubicaciones.filter((u) => u.clienteId === clienteId && !ocupadas.has(u.id));
+          if (!libres.length) throw fallo("No hay ubicaciones libres en el depósito para asignar. Cargá más ubicaciones.");
+          asignada = libres[Math.floor(Math.random() * libres.length)].id;
+        }
+
         const nuevo = {
           id: nuevoId("ct"),
           clienteId,
           codigo: cod,
           tipo,
-          ubicacionId: ubicacionId || null,
+          ubicacionId: asignada,
           descripcion: (descripcion || "").trim() || null,
           fechaAlta: new Date().toISOString(),
         };
