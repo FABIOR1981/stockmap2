@@ -181,7 +181,7 @@ async function cargarContenedores() {
           const u = c.ubicacion;
           const ubic = u ? `${u.pasillo} · ${u.estante} · ${u.nivel}` : "—";
           const llegar = u
-            ? `<button class="secundario chico" data-accion="llegar" data-ubicacion="${u.id}">Cómo llegar</button>`
+            ? `<button class="secundario chico" data-accion="llegar" data-ubicacion="${u.id}" data-contenedor="${c.id}">Cómo llegar</button>`
             : `<span class="muted">Sin ubicación</span>`;
           return `
           <tr>
@@ -208,6 +208,8 @@ async function cargarContenedores() {
 // Muestra el plano. Con destinoId, marca el estante y la ruta hasta él.
 // Último destino buscado o pedido con "Cómo llegar"; el plano 3D lo usa para marcar la ruta.
 let ultimoDestinoId = null;
+// Contenedor buscado o pedido con "Cómo llegar"; el plano 3D lo muestra marcado en detalle.
+let ultimoContenedorId = null;
 
 async function verPlano(destinoId) {
   await intentar(async () => {
@@ -216,6 +218,7 @@ async function verPlano(destinoId) {
     const plano = Plano.construirPlano(ubicaciones);
     const destino = destinoId ? ubicaciones.find((u) => u.id === destinoId) || null : null;
     ultimoDestinoId = destinoId || null;
+    if (!destinoId) ultimoContenedorId = null;
     mostrarVista("plano");
     dibujarPlano(plano, contenedores, destino);
     if (!destinoId) $("#buscar-codigo").focus(); // listo para escanear
@@ -236,8 +239,21 @@ async function verPlano3D() {
       if (!c.ubicacionId) return;
       contenidoPorUbicacion.set(c.ubicacionId, [...(contenidoPorUbicacion.get(c.ubicacionId) || []), c.tipo]);
     });
+    const buscado = ultimoContenedorId ? contenedores.find((c) => c.id === ultimoContenedorId) || null : null;
     mostrarVista("plano3d");
     Plano3D.montar(document.getElementById("plano3d-caja"), plano, destino ? destino.pasillo : null, ruta ? ruta.puntos : null, contenidoPorUbicacion);
+
+    // Recuadro de detalle: la estantería del contenedor buscado, con el contenedor marcado.
+    const detalle = document.getElementById("plano3d-detalle");
+    if (destino) {
+      Plano3D.montarDetalle(detalle, plano, destino, buscado ? buscado.codigo : null, contenidoPorUbicacion);
+      $("#plano3d-detalle-nota").textContent =
+        `${buscado ? buscado.codigo : "Ubicación"} · estantería ${destino.pasillo} · estante ${destino.estante} · división ${destino.nivel}`;
+    } else {
+      Plano3D.desmontarDetalle();
+      detalle.innerHTML = "";
+      $("#plano3d-detalle-nota").textContent = 'Buscá un contenedor o usá "Cómo llegar" para ver su lugar aquí.';
+    }
   });
 }
 
@@ -257,6 +273,7 @@ $("#form-buscar-codigo").addEventListener("submit", async (e) => {
     if (!c) throw new Error(`No hay ningún contenedor con el código ${codigo}.`);
     if (!c.ubicacionId) throw new Error(`El contenedor ${c.codigo} no tiene ubicación asignada.`);
     campo.value = "";
+    ultimoContenedorId = c.id;
     await verPlano(c.ubicacionId);
   });
   campo.focus();
@@ -463,6 +480,7 @@ $("#form-ubicacion").addEventListener("submit", async (e) => {
 $("#tabla-contenedores").addEventListener("click", async (e) => {
   const llegar = e.target.closest("button[data-accion='llegar']");
   if (llegar) {
+    ultimoContenedorId = llegar.dataset.contenedor || null;
     await verPlano(llegar.dataset.ubicacion);
     return;
   }

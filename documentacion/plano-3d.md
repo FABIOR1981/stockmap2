@@ -12,6 +12,10 @@ Archivos: `public/plano3d.js` (la vista) y `public/vendor/three.min.js` (Three.j
 - Si hubo una búsqueda o un "Cómo llegar", la estantería destino se resalta en verde y la ruta más corta se dibuja en verde sobre el piso.
 - Se abre desde el menú **Plano 3D**.
 
+## Recuadro "Contenedor buscado"
+
+Debajo del plano 3D hay un recuadro con una foto fija de la estantería donde está el contenedor buscado. Un anillo naranja que pulsa marca la celda, y el código aparece encima. Se actualiza al buscar un código o usar "Cómo llegar" a un contenedor. Si no hay contenedor buscado, muestra un texto pidiendo que busque uno.
+
 ## Cómo se usa
 
 - Arrastrar con el mouse para girar.

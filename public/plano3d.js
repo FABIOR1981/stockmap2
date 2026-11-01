@@ -205,6 +205,7 @@
   }
 
   function desmontar() {
+    desmontarDetalle();
     if (!mot) return;
     cancelAnimationFrame(mot.raf);
     window.removeEventListener("resize", mot.alCambiarTamano);
@@ -351,5 +352,118 @@
     bucle();
   }
 
-  window.Plano3D = { montar, desmontar };
+  // ------------------------------------------------------------------
+  // Recuadro de detalle: foto fija de la estantería del contenedor buscado, con el contenedor marcado.
+  // ------------------------------------------------------------------
+
+  let det = null; // motor del recuadro de detalle
+
+  // Geometría de una estantería, para ubicar sus celdas en la escena.
+  function geometriaEstanteria(plano, letra) {
+    const b = plano.bandas[letra];
+    const x0 = b.x0 - plano.W / 2;
+    const x1 = b.x1 + 1 - plano.W / 2;
+    const z0 = b.y0 - plano.H / 2;
+    const z1 = b.y1 + 1 - plano.H / 2;
+    const datos = Plano.construirEstanteria(plano.conPosicion, letra);
+    const niveles = datos.estantes.length ? datos.estantes : [1];
+    const n = niveles.length;
+    const anchoBahia = (x1 - x0) / (datos.divisiones.length || 1);
+    return { x0, x1, z0, z1, datos, niveles, n, h: ALTO_ESTANTERIA / n, anchoBahia };
+  }
+
+  // Rótulo con borde naranja, para marcar el código del contenedor.
+  function etiquetaTexto(texto, escala) {
+    const c = document.createElement("canvas");
+    c.width = 512;
+    c.height = 128;
+    const g = c.getContext("2d");
+    g.fillStyle = "rgba(255,255,255,0.96)";
+    g.fillRect(4, 14, 504, 100);
+    g.strokeStyle = "#e07a1f";
+    g.lineWidth = 6;
+    g.strokeRect(4, 14, 504, 100);
+    g.fillStyle = "#14202b";
+    g.font = "bold 62px sans-serif";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(texto, 256, 66);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false })
+    );
+    sprite.scale.set(escala * 4, escala, 1);
+    sprite.renderOrder = 10;
+    return sprite;
+  }
+
+  function desmontarDetalle() {
+    if (!det) return;
+    cancelAnimationFrame(det.raf);
+    det.caja.innerHTML = "";
+    det.renderer.dispose();
+    det.renderer.forceContextLoss?.();
+    det = null;
+  }
+
+  // Foto fija del lugar del contenedor: la estantería de destino, un anillo que pulsa alrededor de la celda
+  // y el código del contenedor encima.
+  function montarDetalle(contenedor, plano, destino, codigo, contenidoPorUbicacion) {
+    desmontarDetalle();
+    if (!destino || !plano.bandas[destino.pasillo]) return;
+    const g = geometriaEstanteria(plano, destino.pasillo);
+    const k = g.niveles.indexOf(parseInt(destino.estante, 10));
+    const j = g.datos.divisiones.indexOf(destino.nivel);
+    if (k < 0 || j < 0) return;
+    const cx = g.x0 + (j + 0.5) * g.anchoBahia;
+    const cy = (g.n - 1 - k) * g.h; // base de la celda
+    const cz = (g.z0 + g.z1) / 2;
+    const fondo = g.z1 - g.z0;
+
+    const escena = new THREE.Scene();
+    escena.background = new THREE.Color("#eceff3");
+    escena.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.9));
+    const sol = new THREE.DirectionalLight(0xffffff, 0.7);
+    sol.position.set(3, 6, 6);
+    escena.add(sol);
+    const piso = new THREE.Mesh(new THREE.PlaneGeometry(8, 6), new THREE.MeshLambertMaterial({ color: 0xe6eaee }));
+    piso.rotation.x = -Math.PI / 2;
+    escena.add(piso);
+    escena.add(construirEstanteria3D(plano, destino.pasillo, contenidoPorUbicacion, true));
+
+    // Anillo naranja delante de la celda, a la altura del contenedor.
+    const anillo = new THREE.Mesh(
+      new THREE.TorusGeometry(0.32, 0.05, 10, 32),
+      new THREE.MeshLambertMaterial({ color: 0xffb020, emissive: 0x553300 })
+    );
+    anillo.position.set(cx, cy + g.h / 2, cz + fondo / 2 + 0.1);
+    escena.add(anillo);
+    if (codigo) {
+      const rotulo = etiquetaTexto(codigo, 0.6);
+      rotulo.position.set(cx, cy + g.h + 0.55, cz);
+      escena.add(rotulo);
+    }
+
+    const w = contenedor.clientWidth || 600;
+    const h = Math.max(300, Math.round(w * 0.55));
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h);
+    contenedor.innerHTML = "";
+    contenedor.appendChild(renderer.domElement);
+    const camara = new THREE.PerspectiveCamera(38, w / h, 0.1, 100);
+    camara.position.set(cx + 0.6, cy + 1.7, cz + 6);
+    camara.lookAt(cx, cy + g.h / 2 + 0.1, cz);
+
+    det = { caja: contenedor, renderer, raf: 0 };
+    const bucle = () => {
+      if (!det || det.renderer !== renderer) return;
+      const pulso = 1 + 0.08 * Math.sin(performance.now() / 300);
+      anillo.scale.set(pulso, pulso, 1);
+      renderer.render(escena, camara);
+      det.raf = requestAnimationFrame(bucle);
+    };
+    bucle();
+  }
+
+  window.Plano3D = { montar, desmontar, montarDetalle, desmontarDetalle };
 })();

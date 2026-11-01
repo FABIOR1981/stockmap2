@@ -124,6 +124,7 @@
     .plano-pasos li { margin-bottom: 4px; }
     .plano3d-caja { width: 100%; min-height: 380px; border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; background: #eceff3; }
     .plano3d-caja canvas { display: block; width: 100%; }
+    .plano3d-chico { min-height: 300px; }
     .plano-svg {
       overflow-x: auto;
       border: 1px solid var(--linea);
@@ -503,6 +504,11 @@
           <div class="card">
             <p class="nota" style="margin-top:0">Arrastrá para girar el depósito y usá la rueda del mouse para acercar o alejar. La ruta del último destino buscado se marca en verde.</p>
             <div id="plano3d-caja" class="plano3d-caja"></div>
+          </div>
+          <div class="card">
+            <h2 class="subtitulo">Contenedor buscado</h2>
+            <div id="plano3d-detalle" class="plano3d-caja plano3d-chico"></div>
+            <p id="plano3d-detalle-nota" class="nota"></p>
           </div>
         </section>
         <section id="vista-plano" class="vista oculto">
