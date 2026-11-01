@@ -148,7 +148,8 @@
       "wheel",
       (e) => {
         e.preventDefault();
-        estado.radio = Math.min(60, Math.max(4, estado.radio * (e.deltaY > 0 ? 1.08 : 0.92)));
+        // Zoom suave y proporcional al giro de la rueda (funciona igual con trackpad).
+        estado.radio = Math.min(60, Math.max(4, estado.radio * Math.exp(e.deltaY * 0.0015)));
         actualizarCamara();
       },
       { passive: false }
