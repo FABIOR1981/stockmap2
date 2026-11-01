@@ -177,7 +177,7 @@ async function cargarContenedores() {
             : `<span class="muted">Sin ubicación</span>`;
           return `
           <tr>
-            <td><strong>${escapar(c.codigo)}</strong></td>
+            <td><strong>${escapar(c.codigo)}</strong>${c.codigoPropio ? `<br><span class="muted">Producto: ${escapar(c.codigoPropio)}</span>` : ""}</td>
             <td>${escapar(capitalizar(c.tipo))}</td>
             <td>${escapar(ubic)}</td>
             <td>${escapar(c.descripcion || "")}</td>
@@ -218,7 +218,11 @@ $("#form-buscar-codigo").addEventListener("submit", async (e) => {
   if (!codigo) return;
   await intentar(async () => {
     const contenedores = await P.contenedores.listar(clienteActivo);
-    const c = contenedores.find((x) => x.codigo.toLowerCase() === codigo.toLowerCase());
+    const buscado = codigo.toLowerCase();
+    // Busca por código del sistema o por código propio del producto.
+    const c = contenedores.find(
+      (x) => x.codigo.toLowerCase() === buscado || (x.codigoPropio || "").toLowerCase() === buscado
+    );
     if (!c) throw new Error(`No hay ningún contenedor con el código ${codigo}.`);
     if (!c.ubicacionId) throw new Error(`El contenedor ${c.codigo} no tiene ubicación asignada.`);
     campo.value = "";
@@ -402,7 +406,7 @@ $("#form-contenedor").addEventListener("submit", async (e) => {
   e.preventDefault();
   await intentar(async () => {
     await P.contenedores.crear(clienteActivo, {
-      codigo: $("#codigo").value,
+      codigoPropio: $("#codigo-propio").value,
       tipo: $("#tipo").value,
       ubicacionId: $("#ubicacion").value || null,
       descripcion: $("#descripcion").value,

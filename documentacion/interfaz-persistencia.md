@@ -55,8 +55,8 @@ Los campos de una ubicación son `pasillo` (estantería, letra mayúscula, por e
 
 | Función | Parámetros | Devuelve |
 |---|---|---|
-| `contenedores.listar(clienteId)` | id de cliente | `[{ id, clienteId, codigo, tipo, ubicacionId, descripcion, fechaAlta, ubicacion }]`, ordenados por código. `ubicacion` es el objeto completo o `null`. |
-| `contenedores.crear(clienteId, datos)` | `{ codigo, tipo, ubicacionId, descripcion }` | Contenedor creado |
+| `contenedores.listar(clienteId)` | id de cliente | `[{ id, clienteId, codigo, codigoPropio, tipo, ubicacionId, descripcion, fechaAlta, ubicacion }]`, ordenados por código. `ubicacion` es el objeto completo o `null`. |
+| `contenedores.crear(clienteId, datos)` | `{ codigoPropio, tipo, ubicacionId, descripcion }` | Contenedor creado. `codigo` lo asigna el sistema; `codigoPropio` es opcional. |
 | `contenedores.borrar(id)` | id de contenedor | — (no hace nada si el id no existe) |
 
 ### Constantes

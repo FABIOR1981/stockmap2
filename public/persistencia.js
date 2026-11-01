@@ -188,16 +188,22 @@
         );
       },
 
-      async crear(clienteId, { codigo, tipo, ubicacionId, descripcion }) {
+      async crear(clienteId, { codigoPropio, tipo, ubicacionId, descripcion }) {
         exigirAcceso(clienteId);
-        const cod = (codigo || "").trim();
-        if (!cod) throw fallo("El código es obligatorio.");
         if (!TIPOS_CONTENEDOR.includes(tipo)) throw fallo("Tipo de contenedor no válido.");
 
-        const repetido = datos.contenedores.some(
-          (c) => c.clienteId === clienteId && c.codigo.toLowerCase() === cod.toLowerCase()
-        );
-        if (repetido) throw fallo(`Ya existe un contenedor con el código ${cod}.`);
+        // El código del sistema es automático (CJ-0001, BL-0002...), único por cliente.
+        // El código propio del producto es opcional y no se usa como identificador.
+        const PREFIJO = { caja: "CJ", bolsa: "BL", pallet: "PL", tambor: "TB", otro: "OT" };
+        const delCliente = datos.contenedores.filter((c) => c.clienteId === clienteId);
+        const usados = new Set(delCliente.map((c) => c.codigo.toLowerCase()));
+        let numero = delCliente.length + 1;
+        let cod;
+        do {
+          cod = `${PREFIJO[tipo]}-${String(numero).padStart(4, "0")}`;
+          numero++;
+        } while (usados.has(cod.toLowerCase()));
+        const propio = (codigoPropio || "").trim() || null;
 
         if (ubicacionId && !datos.ubicaciones.some((u) => u.id === ubicacionId && u.clienteId === clienteId)) {
           throw fallo("La ubicación no pertenece a este cliente.");
@@ -218,6 +224,7 @@
           id: nuevoId("ct"),
           clienteId,
           codigo: cod,
+          codigoPropio: propio,
           tipo,
           ubicacionId: asignada,
           descripcion: (descripcion || "").trim() || null,
