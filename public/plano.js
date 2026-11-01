@@ -4,7 +4,8 @@
 // - Cada estantería (A, B, C...) es una franja horizontal. Las estanterías se agrupan en pasillos
 //   de ESTANTERIAS_POR_PASILLO: A–E en el pasillo 1, F–J en el pasillo 2, etc.
 // - Cada pasillo es una línea vertical con sus estanterías a la derecha. Los pasillos están uno al lado del otro.
-// - La entrada está en el medio del galpón, sobre una calle transversal que une los pasillos.
+// - La entrada está en la pared izquierda del galpón, a mitad de altura. Desde ahí se sube
+//   hasta la calle superior, que une los pasillos.
 // - Para llegar a una estantería: entrar, avanzar por la calle hasta el pasillo y bajar por él
 //   hasta la franja de la estantería.
 // - Dentro de la estantería, el estante es una columna y la división una fila (ver la vista de frente).
@@ -36,8 +37,8 @@
     const filasPorPasillo = Math.min(ESTANTERIAS_POR_PASILLO, estanterias.length);
     // Distancia entre pasillos, en columnas del plano (fija: las franjas no muestran estantes).
     const paso = PASO_PASILLOS;
-    // La entrada queda en el medio del galpón, sobre la calle que une los pasillos.
-    const entrada = { x: ((Math.max(corredores, 1) - 1) * paso) / 2, y: -1 };
+    // La entrada queda en la pared izquierda del galpón, a mitad de altura (x = -1).
+    const entrada = { x: -1, y: (Math.max(filasPorPasillo, 1) - 1) / 2 };
     return {
       estanterias,
       posicion,
@@ -59,7 +60,8 @@
 
     return {
       puntos: [
-        { x: plano.entrada.x, y: -1 }, // entrada, en el medio de la calle
+        { x: plano.entrada.x, y: plano.entrada.y }, // entrada, pared izquierda a mitad de altura
+        { x: plano.entrada.x, y: -1 }, // subir por la pared izquierda hasta la calle superior
         { x: cx, y: -1 },             // calle transversal hasta el pasillo
         { x: cx, y: pos.fila },       // bajar por el pasillo hasta la estantería
       ],

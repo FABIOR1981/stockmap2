@@ -256,13 +256,18 @@ function dibujarPlano(plano, contenedores, destino) {
       );
     }
     partes.push(
-      `<line x1="${X(0)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+    );
+    // Pared izquierda: franja desde la calle superior hasta el fondo del galpón.
+    partes.push(
+      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(-1)}" y2="${Y(filasPorPasillo - 1) + 30}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
     );
     const xEntrada = X(plano.entrada.x);
+    const yEntrada = Y(plano.entrada.y);
     partes.push(
-      `<text x="${xEntrada}" y="${Y(yCalle) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
+      `<text x="${xEntrada - 16}" y="${yEntrada + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
     );
-    partes.push(`<circle cx="${xEntrada}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
+    partes.push(`<circle cx="${xEntrada}" cy="${yEntrada}" r="6" fill="#4f5c69"/>`);
   }
 
   // Franjas de estanterías, cada una tocable, con su letra dentro; la del destino se resalta.
@@ -286,7 +291,7 @@ function dibujarPlano(plano, contenedores, destino) {
     partes.push(
       `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(plano.entrada.x)}" cy="${Y(yCalle)}" r="6" fill="#1f5f5b"/>`);
+    partes.push(`<circle cx="${X(plano.entrada.x)}" cy="${Y(plano.entrada.y)}" r="6" fill="#1f5f5b"/>`);
   }
 
   $("#plano-svg").innerHTML =
