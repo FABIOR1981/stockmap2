@@ -10,6 +10,13 @@
   // Convierte coordenadas de celda (continuas) a coordenadas de la escena, centradas en el origen.
   const aMundo = (plano, xc, yc) => ({ x: xc - plano.W / 2, z: yc - plano.H / 2 });
 
+  // Pieza rectangular (poste, viga, tabla o caja) centrada en (x, y, z).
+  const caja = (w, h, d, material, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+    m.position.set(x, y, z);
+    return m;
+  };
+
   // Etiqueta con la letra de la estantería, siempre de cara a la cámara.
   function etiqueta(texto) {
     const c = document.createElement("canvas");
@@ -43,6 +50,64 @@
     }
   }
 
+  // Una estantería de logística: postes, vigas al frente y al fondo, tablas por nivel y cajas.
+  // Niveles = estantes (el 1 abajo); bahías = divisiones (la a a la izquierda).
+  function construirEstanteria3D(plano, letra, ocupadas, destacada) {
+    const b = plano.bandas[letra];
+    const grupo = new THREE.Group();
+    const x0 = b.x0 - plano.W / 2;
+    const x1 = b.x1 + 1 - plano.W / 2;
+    const z0 = b.y0 - plano.H / 2;
+    const z1 = b.y1 + 1 - plano.H / 2;
+    const ancho = x1 - x0;
+    const fondo = z1 - z0;
+
+    const datos = Plano.construirEstanteria(plano.conPosicion, letra);
+    const niveles = datos.estantes.length ? datos.estantes : [1];
+    const bahias = datos.divisiones.length || 1;
+    const n = niveles.length;
+    const h = ALTO_ESTANTERIA / n;
+    const anchoBahia = ancho / bahias;
+
+    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x1e4e8c });
+    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0xe07a1f });
+    const tabla = new THREE.MeshLambertMaterial({ color: 0xb8c2cc });
+    const cartones = [new THREE.MeshLambertMaterial({ color: 0xc8a26b }), new THREE.MeshLambertMaterial({ color: 0xb08d55 })];
+
+    // Postes en cada límite de bahía, al frente y al fondo.
+    for (let i = 0; i <= bahias; i++) {
+      const x = x0 + i * anchoBahia;
+      [z0 + 0.05, z1 - 0.05].forEach((z) => grupo.add(caja(0.09, ALTO_ESTANTERIA, 0.09, poste, x, ALTO_ESTANTERIA / 2, z)));
+    }
+    // Tablas y vigas por nivel.
+    for (let k = 0; k < n; k++) {
+      const yTabla = k * h + 0.03;
+      grupo.add(caja(ancho, 0.06, fondo, tabla, (x0 + x1) / 2, yTabla, (z0 + z1) / 2));
+      const yViga = (k + 1) * h - 0.04;
+      grupo.add(caja(ancho, 0.08, 0.08, acero, (x0 + x1) / 2, yViga, z0 + 0.05));
+      grupo.add(caja(ancho, 0.08, 0.08, acero, (x0 + x1) / 2, yViga, z1 - 0.05));
+    }
+    // Cajas: una por ubicación con contenedores.
+    datos.celdas.forEach((u) => {
+      if (!ocupadas.has(u.id)) return;
+      const k = niveles.indexOf(parseInt(u.estante, 10));
+      const j = datos.divisiones.indexOf(u.nivel);
+      if (k < 0 || j < 0) return;
+      const bh = 0.5;
+      const cajaCarton = caja(
+        anchoBahia * 0.62,
+        bh,
+        fondo * 0.6,
+        cartones[(k + j) % 2],
+        x0 + (j + 0.5) * anchoBahia,
+        k * h + 0.06 + bh / 2,
+        (z0 + z1) / 2
+      );
+      grupo.add(cajaCarton);
+    });
+    return grupo;
+  }
+
   function desmontar() {
     if (!mot) return;
     cancelAnimationFrame(mot.raf);
@@ -54,10 +119,10 @@
   }
 
   // Dibuja el depósito en `caja`. `letraDestino` resalta una estantería; `puntosRuta` es el recorrido (celdas).
-  function montar(caja, plano, letraDestino, puntosRuta) {
+  function montar(contenedor, plano, letraDestino, puntosRuta, ocupadas) {
     desmontar();
     if (!plano.estanterias.length) {
-      caja.textContent = "Todavía no hay estanterías para mostrar.";
+      contenedor.textContent = "Todavía no hay estanterías para mostrar.";
       return;
     }
 
@@ -76,18 +141,14 @@
     piso.rotation.x = -Math.PI / 2;
     escena.add(piso);
 
-    // Estanterías: bloques; la del destino se resalta.
+    // Estanterías de logística: estructura con postes, vigas y tablas por nivel; cajas donde hay contenedores.
     plano.estanterias.forEach((letra) => {
+      const grupo = construirEstanteria3D(plano, letra, ocupadas, letra === letraDestino);
+      escena.add(grupo);
       const b = plano.bandas[letra];
-      const ancho = b.x1 - b.x0 + 1;
-      const fondo = b.y1 - b.y0 + 1;
       const c = aMundo(plano, (b.x0 + b.x1 + 1) / 2, (b.y0 + b.y1 + 1) / 2);
-      const material = new THREE.MeshLambertMaterial({ color: letra === letraDestino ? 0x1f5f5b : 0x9aa8b6 });
-      const bloque = new THREE.Mesh(new THREE.BoxGeometry(ancho * 0.92, ALTO_ESTANTERIA, fondo * 0.92), material);
-      bloque.position.set(c.x, ALTO_ESTANTERIA / 2, c.z);
-      escena.add(bloque);
       const et = etiqueta(letra);
-      et.position.set(c.x, ALTO_ESTANTERIA + 0.9, c.z);
+      et.position.set(c.x, ALTO_ESTANTERIA + 0.7, c.z);
       escena.add(et);
     });
 
@@ -103,13 +164,13 @@
     if (puntosRuta && puntosRuta.length > 1) dibujarRuta(plano, puntosRuta, escena);
 
     // Cámara con órbita alrededor del centro del depósito
-    const w = caja.clientWidth || 600;
+    const w = contenedor.clientWidth || 600;
     const h = Math.max(380, Math.round(w * 0.75));
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w, h);
-    caja.innerHTML = "";
-    caja.appendChild(renderer.domElement);
+    contenedor.innerHTML = "";
+    contenedor.appendChild(renderer.domElement);
     const camara = new THREE.PerspectiveCamera(45, w / h, 0.1, 300);
 
     const estado = { theta: 2.7, phi: 0.85, radio: Math.max(plano.W, plano.H) * 1.9, arrastrando: false, x: 0, y: 0 };
@@ -156,7 +217,7 @@
     );
 
     const alCambiarTamano = () => {
-      const nuevoW = caja.clientWidth || 600;
+      const nuevoW = contenedor.clientWidth || 600;
       const nuevoH = Math.max(380, Math.round(nuevoW * 0.75));
       renderer.setSize(nuevoW, nuevoH);
       camara.aspect = nuevoW / nuevoH;
@@ -164,7 +225,7 @@
     };
     window.addEventListener("resize", alCambiarTamano);
 
-    mot = { caja, renderer, alCambiarTamano, raf: 0 };
+    mot = { caja: contenedor, renderer, alCambiarTamano, raf: 0 };
     const bucle = () => {
       if (!mot || mot.renderer !== renderer) return;
       renderer.render(escena, camara);
