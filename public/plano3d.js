@@ -217,6 +217,32 @@
     return grupo;
   }
 
+  // Número de parada en un círculo naranja, siempre visible (no se oculta detrás de las estanterías).
+  function marcaParada(n) {
+    const c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    const g = c.getContext("2d");
+    g.beginPath();
+    g.arc(64, 64, 54, 0, Math.PI * 2);
+    g.fillStyle = "#e07a1f";
+    g.fill();
+    g.lineWidth = 8;
+    g.strokeStyle = "#ffffff";
+    g.stroke();
+    g.fillStyle = "#ffffff";
+    g.font = "bold 70px sans-serif";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillText(String(n), 64, 68);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false })
+    );
+    sprite.scale.set(0.7, 0.7, 1);
+    sprite.renderOrder = 10;
+    return sprite;
+  }
+
   // Entrada en forma de hueco: dos muros con un paso al centro, un dintel y un cartel verde "ENTRADA".
   function entradaHueco(x, z) {
     const g = new THREE.Group();
@@ -258,7 +284,7 @@
 
   // Dibuja el depósito en `caja`. `letraDestino` resalta una estantería; `puntosRuta` es el recorrido (celdas).
   // `contenidoPorUbicacion`: Map de id de ubicación -> lista de tipos de contenedor que hay en ella.
-  function montar(contenedor, plano, letraDestino, puntosRuta, contenidoPorUbicacion) {
+  function montar(contenedor, plano, letraDestino, puntosRuta, contenidoPorUbicacion, paradas) {
     desmontar();
     if (!plano.estanterias.length) {
       contenedor.textContent = "Todavía no hay estanterías para mostrar.";
@@ -306,6 +332,13 @@
     escena.add(entradaHueco(entrada.x, entrada.z));
 
     if (puntosRuta && puntosRuta.length > 1) dibujarRuta(plano, puntosRuta, escena);
+    // Recorrido con varias paradas: número de orden de cada parada, sobre el frente de su estantería.
+    (paradas || []).forEach((p) => {
+      const c = aMundo(plano, p.x + 0.5, p.y + 0.5);
+      const marca = marcaParada(p.n);
+      marca.position.set(c.x, 1.2, c.z);
+      escena.add(marca);
+    });
 
     // Sombras para todos los objetos (estanterías, contenedores, ruta).
     escena.traverse((o) => {

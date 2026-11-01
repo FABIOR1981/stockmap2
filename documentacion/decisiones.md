@@ -72,6 +72,8 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Estanterías claras sobre piso oscuro.** Con el piso epóxico oscuro, las estanterías oscuras se confundían con el piso. Se usa acero gris medio para postes, vigas y tablas, para no saturar la vista. Los contenedores quedan en colores que contrastan con la estructura (cartón, bolsa crema, tarro y cubo claros). El piso se mantiene.
 
+**Recorrido de varios contenedores en el menú "Ruta".** Se pide la mejor ruta para retirar varios contenedores. Se eligió el orden exacto (programación dinámica, hasta 12 paradas) porque la cantidad de paradas por pedido es chica y el resultado tiene que ser realmente el más corto. Se muestra en la lista y en el plano 3D.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).

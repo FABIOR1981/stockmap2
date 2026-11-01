@@ -125,6 +125,12 @@
     .plano3d-caja { width: 100%; min-height: 380px; border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; background: #eceff3; }
     .plano3d-caja canvas { display: block; width: 100%; }
     .plano3d-chico { min-height: 300px; }
+    #ruta-codigos { width: 100%; font: inherit; padding: 10px 12px; margin: 6px 0 12px; border: 1px solid var(--linea); border-radius: 8px; background: var(--superficie); color: var(--tinta); resize: vertical; }
+    @media (min-width: 1000px) {
+      #vista-ruta .plano3d-doble { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+    }
+    #ruta-pasos { list-style: none; padding-left: 0; }
+    #ruta-pasos li { margin-bottom: 8px; }
     .plano3d-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
     @media (min-width: 1000px) {
       .plano3d-doble { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
@@ -416,6 +422,7 @@
         <button type="button" data-vista="ubicaciones">Ubicaciones</button>
         <button type="button" data-vista="plano">Plano</button>
         <button type="button" data-vista="plano3d">Plano 3D</button>
+        <button type="button" data-vista="ruta">Ruta</button>
         <!-- Solo para desarrollo: quitar antes de usar con clientes reales -->
         <button type="button" id="btn-datos-prueba" class="auxiliar">Cargar datos de prueba</button>
       </nav>
@@ -516,6 +523,28 @@
               <h2 class="subtitulo">Contenedor buscado</h2>
               <div id="plano3d-detalle" class="plano3d-caja plano3d-chico"></div>
               <p id="plano3d-detalle-nota" class="nota"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista: recorrido por varios contenedores -->
+        <section id="vista-ruta" class="vista oculto">
+          <div class="cabecera-vista">
+            <h1>Ruta</h1>
+          </div>
+          <div class="plano3d-doble">
+            <div class="card">
+              <form id="form-ruta">
+                <label for="ruta-codigos">Códigos de los contenedores a buscar</label>
+                <textarea id="ruta-codigos" rows="5" placeholder="Un código por línea. También sirve escanear uno tras otro."></textarea>
+                <button type="submit" class="primario">Armar la mejor ruta</button>
+              </form>
+              <p id="ruta-resumen" class="nota"></p>
+              <ul id="ruta-pasos" class="plano-pasos"></ul>
+            </div>
+            <div class="card">
+              <p class="nota" style="margin-top:0">El recorrido sale de la entrada y pasa por el frente de cada estantería, en el orden más corto. Las flechas marcan el sentido y los números el orden de las paradas.</p>
+              <div id="ruta3d-caja" class="plano3d-caja"></div>
             </div>
           </div>
         </section>

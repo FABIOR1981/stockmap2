@@ -279,6 +279,92 @@ $("#form-buscar-codigo").addEventListener("submit", async (e) => {
   campo.focus();
 });
 
+// Recorrido por varios contenedores: códigos (uno por línea, o separados por coma o espacio),
+// orden más corto desde la entrada y vista 3D con flechas.
+$("#form-ruta").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  await intentar(async () => {
+    const pedidos = $("#ruta-codigos").value.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean);
+    if (!pedidos.length) throw new Error("Escribí al menos un código de contenedor.");
+    const ubicaciones = await P.ubicaciones.listar(clienteActivo);
+    const contenedores = await P.contenedores.listar(clienteActivo);
+    const plano = Plano.construirPlano(ubicaciones);
+
+    const buscar = (codigo) => {
+      const k = codigo.toLowerCase();
+      return contenedores.find((x) => x.codigo.toLowerCase() === k || (x.codigoPropio || "").toLowerCase() === k) || null;
+    };
+    const noEncontrados = [];
+    const sinUbicacion = [];
+    const porUbicacion = new Map(); // id de ubicación -> { ubicacion, codigos }
+    const vistos = new Set();
+    for (const codigo of pedidos) {
+      const k = codigo.toLowerCase();
+      if (vistos.has(k)) continue;
+      vistos.add(k);
+      const c = buscar(codigo);
+      if (!c) {
+        noEncontrados.push(codigo);
+        continue;
+      }
+      const u = c.ubicacionId ? ubicaciones.find((x) => x.id === c.ubicacionId) : null;
+      if (!u) {
+        sinUbicacion.push(c.codigo);
+        continue;
+      }
+      if (!porUbicacion.has(u.id)) porUbicacion.set(u.id, { ubicacion: u, codigos: [] });
+      porUbicacion.get(u.id).codigos.push(c.codigo);
+    }
+
+    const resultado = porUbicacion.size ? Plano.planificarRecorrido(plano, [...porUbicacion.values()].map((p) => p.ubicacion)) : null;
+
+    // Mensaje de resumen: qué se encontró, qué no y cuánto camina.
+    const partes = [];
+    if (resultado) partes.push(`Recorrido de ${resultado.paradas.length} paradas, ${resultado.longitud} pasos desde la entrada.`);
+    if (noEncontrados.length) partes.push(`No hay contenedores con el código: ${noEncontrados.join(", ")}.`);
+    if (sinUbicacion.length) partes.push(`Sin ubicación asignada: ${sinUbicacion.join(", ")}.`);
+    $("#ruta-resumen").textContent = partes.join(" ");
+
+    // Pasos: el primero es la entrada; cada parada muestra los contenedores que se retiran allí.
+    const lista = $("#ruta-pasos");
+    lista.innerHTML = "";
+    if (resultado) {
+      resultado.pasos.forEach((texto, i) => {
+        const li = document.createElement("li");
+        li.textContent = texto;
+        // Cada parada ya viene numerada desde el cálculo (igual que en el 3D).
+        if (i > 0) {
+          const parada = resultado.paradas[i - 1];
+          const codigos = porUbicacion.get(parada.ubicacion.id)?.codigos || [];
+          if (codigos.length) {
+            const detalle = document.createElement("span");
+            detalle.className = "nota";
+            detalle.textContent = ` Contenedores: ${codigos.join(", ")}.`;
+            li.appendChild(detalle);
+          }
+        }
+        lista.appendChild(li);
+      });
+    }
+
+    // Mapa de contenidos (igual que en el plano 3D), para dibujar cada contenedor con su forma.
+    const contenidoPorUbicacion = new Map();
+    contenedores.forEach((c) => {
+      if (!c.ubicacionId) return;
+      contenidoPorUbicacion.set(c.ubicacionId, [...(contenidoPorUbicacion.get(c.ubicacionId) || []), c.tipo]);
+    });
+    mostrarVista("ruta");
+    Plano3D.montar(
+      document.getElementById("ruta3d-caja"),
+      plano,
+      null,
+      resultado ? resultado.puntos : null,
+      contenidoPorUbicacion,
+      resultado ? resultado.paradas : []
+    );
+  });
+});
+
 function dibujarPlano(plano, contenedores, destino) {
   vistaPlano = {
     ubicaciones: [...plano.conPosicion, ...plano.sinPosicion],

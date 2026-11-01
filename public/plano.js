@@ -127,5 +127,147 @@
     return { estanteria, estantes, divisiones, celdas };
   }
 
-  window.Plano = { construirPlano, calcularRuta, construirEstanteria };
+  // ---------------------------------------------------------------
+  // Recorrido por varias ubicaciones: desde la entrada, pasando por el frente de cada una, en el orden más corto.
+  // ---------------------------------------------------------------
+
+  const MAX_PARADAS = 12; // con más paradas, el cálculo exacto se vuelve lento
+
+  // Celdas libres delante del frente de una estantería.
+  function celdasFrente(plano, letra) {
+    const b = plano.bandas[letra];
+    const celdas = [];
+    if (!b) return celdas;
+    const y = b.y1 + 1;
+    for (let x = b.x0; x <= b.x1; x++) {
+      if (y < plano.H && !plano.obstaculos.has(`${x},${y}`)) celdas.push({ x, y });
+    }
+    return celdas;
+  }
+
+  // Búsqueda en anchura desde uno o varios puntos de partida. Devuelve distancias y punto anterior de cada celda.
+  function bfs(plano, origenes) {
+    const clave = (x, y) => `${x},${y}`;
+    const dist = new Map();
+    const previa = new Map();
+    const cola = [];
+    origenes.forEach((c) => {
+      dist.set(clave(c.x, c.y), 0);
+      previa.set(clave(c.x, c.y), null);
+      cola.push(c);
+    });
+    for (let i = 0; i < cola.length; i++) {
+      const a = cola[i];
+      const d = dist.get(clave(a.x, a.y));
+      for (const [nx, ny] of [[a.x + 1, a.y], [a.x - 1, a.y], [a.x, a.y + 1], [a.x, a.y - 1]]) {
+        const k = clave(nx, ny);
+        if (dist.has(k) || nx < 0 || ny < 0 || nx >= plano.W || ny >= plano.H || plano.obstaculos.has(k)) continue;
+        dist.set(k, d + 1);
+        previa.set(k, a);
+        cola.push({ x: nx, y: ny });
+      }
+    }
+    return { dist, previa };
+  }
+
+  // Camino desde el origen de una búsqueda hasta `destino` (incluye ambos extremos).
+  function caminoHasta(previa, destino) {
+    const camino = [];
+    for (let p = destino; p; p = previa.get(`${p.x},${p.y}`)) camino.unshift({ x: p.x, y: p.y });
+    return camino;
+  }
+
+  // Orden de visita más corto (programación dinámica sobre subconjuntos): empieza en la entrada y no vuelve.
+  function ordenOptimo(distancias, inicio) {
+    const n = inicio.length;
+    const llena = (1 << n) - 1;
+    const costo = Array.from({ length: 1 << n }, () => new Array(n).fill(Infinity));
+    const anterior = Array.from({ length: 1 << n }, () => new Array(n).fill(-1));
+    for (let i = 0; i < n; i++) costo[1 << i][i] = inicio[i];
+    for (let mascara = 1; mascara <= llena; mascara++) {
+      for (let ultimo = 0; ultimo < n; ultimo++) {
+        const c = costo[mascara][ultimo];
+        if (c === Infinity) continue;
+        for (let sig = 0; sig < n; sig++) {
+          if (mascara & (1 << sig)) continue;
+          const nueva = mascara | (1 << sig);
+          const valor = c + distancias[ultimo][sig];
+          if (valor < costo[nueva][sig]) {
+            costo[nueva][sig] = valor;
+            anterior[nueva][sig] = ultimo;
+          }
+        }
+      }
+    }
+    let fin = 0;
+    for (let i = 1; i < n; i++) if (costo[llena][i] < costo[llena][fin]) fin = i;
+    const orden = [];
+    let mascara = llena;
+    let actual = fin;
+    while (actual !== -1) {
+      orden.unshift(actual);
+      const previo = anterior[mascara][actual];
+      mascara ^= 1 << actual;
+      actual = previo;
+    }
+    return orden;
+  }
+
+  // Recorrido por varias ubicaciones. Devuelve el orden de visita, el camino celda por celda y los pasos.
+  // `ubicaciones`: lista de ubicaciones con posición en el plano (sin repetir). Devuelve null si no hay ruta posible.
+  function planificarRecorrido(plano, ubicaciones) {
+    const paradas = ubicaciones.filter((u) => plano.bandas[u.pasillo] && esNumero(u.estante));
+    if (!paradas.length) return null;
+    if (paradas.length > MAX_PARADAS) throw new Error(`Hasta ${MAX_PARADAS} ubicaciones por recorrido.`);
+
+    const frentes = paradas.map((u) => celdasFrente(plano, u.pasillo));
+    const distanciaDesde = (origenes) => {
+      const r = bfs(plano, origenes);
+      return (celdas) => celdas.reduce((m, c) => Math.min(m, r.dist.get(`${c.x},${c.y}`) ?? Infinity), Infinity);
+    };
+    // Distancias entre paradas (aproximadas al frente más cercano) y desde la entrada, para elegir el orden.
+    const matriz = paradas.map((_, i) => {
+      const dA = distanciaDesde(frentes[i]);
+      return frentes.map((f) => dA(f));
+    });
+    const desdeEntrada = distanciaDesde([plano.entrada]);
+    const orden = ordenOptimo(matriz, frentes.map((f) => desdeEntrada(f)));
+
+    // Camino real: desde la posición actual hasta el frente más cercano de la siguiente parada.
+    const puntos = [{ x: plano.entrada.x, y: plano.entrada.y }];
+    const paradasEnRuta = [];
+    let actual = plano.entrada;
+    let longitud = 0;
+    orden.forEach((idx, n) => {
+      const r = bfs(plano, [actual]);
+      let mejor = null;
+      frentes[idx].forEach((c) => {
+        const d = r.dist.get(`${c.x},${c.y}`);
+        if (d !== undefined && (!mejor || d < mejor.d)) mejor = { c, d };
+      });
+      if (!mejor) return;
+      const tramo = caminoHasta(r.previa, mejor.c).slice(1);
+      tramo.forEach((p) => puntos.push(p));
+      longitud += mejor.d;
+      actual = mejor.c;
+      paradasEnRuta.push({ x: mejor.c.x, y: mejor.c.y, n: n + 1, ubicacion: paradas[idx] });
+    });
+
+    const pasos = [
+      "Entrá por la entrada del depósito, por la pared izquierda.",
+      ...paradasEnRuta.map(
+        (p) =>
+          `${p.n}. Caminá hasta el frente de la estantería ${p.ubicacion.pasillo} y buscá el estante ${p.ubicacion.estante}, división ${p.ubicacion.nivel}.`
+      ),
+    ];
+    return {
+      orden: paradasEnRuta.map((p) => p.ubicacion),
+      puntos,
+      paradas: paradasEnRuta,
+      pasos,
+      longitud,
+    };
+  }
+
+  window.Plano = { construirPlano, calcularRuta, construirEstanteria, planificarRecorrido };
 })();

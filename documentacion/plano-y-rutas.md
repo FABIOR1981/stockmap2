@@ -48,6 +48,15 @@ La ruta se calcula con una búsqueda en anchura (BFS) sobre la cuadrícula:
 
 Así el camino es el más corto posible hasta el frente, que es donde se busca el estante y la división. Los pasos que se muestran son tres: entrar, caminar hasta el frente de la estantería y buscar estante y división en la vista de frente.
 
+## Ruta de varios contenedores (menú "Ruta")
+
+- Se escriben los códigos (uno por línea, o separados por coma o espacio; sirve un lector de códigos que envía Enter después de cada uno).
+- Cada contenedor se busca por código del sistema o código propio. Los que no existen o no tienen ubicación se avisan en el resumen; el resto sigue.
+- Contenedores en la misma ubicación cuentan como una sola parada.
+- El orden de visita es el más corto desde la entrada, sin volver a ella. Se calcula con programación dinámica sobre subconjuntos (`ordenOptimo` en `plano.js`), así que el orden es exacto. Hay un máximo de 12 paradas.
+- El camino se arma celda por celda, desde la posición actual hasta el frente más cercano de la siguiente parada.
+- La vista 3D muestra el recorrido con flechas y un número naranja en cada parada. La lista muestra los pasos y los contenedores que se retiran en cada una.
+
 ## Cómo se llega a la vista
 
 - **Menú → Plano:** muestra todo el depósito, sin ruta, y deja el campo de búsqueda listo para escanear.
