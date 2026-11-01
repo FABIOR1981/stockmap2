@@ -18,7 +18,7 @@
   };
 
   // Etiqueta con la letra de la estantería, siempre de cara a la cámara.
-  function etiqueta(texto) {
+  function etiqueta(texto, escala = 1.1) {
     const c = document.createElement("canvas");
     c.width = 128;
     c.height = 128;
@@ -30,7 +30,7 @@
     g.fillText(texto, 64, 68);
     const material = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true });
     const sprite = new THREE.Sprite(material);
-    sprite.scale.set(1.1, 1.1, 1);
+    sprite.scale.set(escala, escala, 1);
     return sprite;
   }
 
@@ -185,9 +185,21 @@
       const anchoCaja = (anchoBahia * 0.85) / tipos.length;
       tipos.forEach((tipo, i) => {
         const forma = formaContenedor(tipo, anchoCaja * 0.9, fondo * 0.6);
-        forma.position.set(x0 + j * anchoBahia + anchoBahia * 0.075 + anchoCaja * (i + 0.5), k * h + 0.06, (z0 + z1) / 2);
+        forma.position.set(x0 + j * anchoBahia + anchoBahia * 0.075 + anchoCaja * (i + 0.5), (n - 1 - k) * h + 0.06, (z0 + z1) / 2);
         grupo.add(forma);
       });
+    });
+
+    // Rótulos como en la vista de frente: número de estante a la izquierda (el 1 arriba), letra de división arriba.
+    niveles.forEach((estante, k) => {
+      const r = etiqueta(String(estante), 0.5);
+      r.position.set(x0 - 0.45, (n - 1 - k) * h + h / 2, (z0 + z1) / 2);
+      grupo.add(r);
+    });
+    datos.divisiones.forEach((division, j) => {
+      const r = etiqueta(division, 0.55);
+      r.position.set(x0 + (j + 0.5) * anchoBahia, ALTO_ESTANTERIA + 0.25, (z0 + z1) / 2);
+      grupo.add(r);
     });
     return grupo;
   }
@@ -243,7 +255,7 @@
       const b = plano.bandas[letra];
       const c = aMundo(plano, (b.x0 + b.x1 + 1) / 2, (b.y0 + b.y1 + 1) / 2);
       const et = etiqueta(letra);
-      et.position.set(c.x, ALTO_ESTANTERIA + 0.7, c.z);
+      et.position.set(c.x, ALTO_ESTANTERIA + 1.15, c.z);
       escena.add(et);
     });
 
