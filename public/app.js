@@ -51,6 +51,7 @@ async function mostrarApp() {
 
 // Muestra una sola sección del menú y marca el botón activo.
 function mostrarVista(nombre) {
+  if (nombre !== "plano3d") Plano3D.desmontar(); // libera el canvas 3D al salir de su vista
   document.querySelectorAll(".vista").forEach((v) => {
     v.classList.toggle("oculto", v.id !== `vista-${nombre}`);
   });
@@ -90,6 +91,7 @@ $(".menu").addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-vista]");
   if (!btn) return;
   if (btn.dataset.vista === "plano") await verPlano(null);
+  else if (btn.dataset.vista === "plano3d") await verPlano3D();
   else mostrarVista(btn.dataset.vista);
 });
 
@@ -204,15 +206,31 @@ async function cargarContenedores() {
 // ---------------------------------------------------------------------
 
 // Muestra el plano. Con destinoId, marca el estante y la ruta hasta él.
+// Último destino buscado o pedido con "Cómo llegar"; el plano 3D lo usa para marcar la ruta.
+let ultimoDestinoId = null;
+
 async function verPlano(destinoId) {
   await intentar(async () => {
     const ubicaciones = await P.ubicaciones.listar(clienteActivo);
     const contenedores = await P.contenedores.listar(clienteActivo);
     const plano = Plano.construirPlano(ubicaciones);
     const destino = destinoId ? ubicaciones.find((u) => u.id === destinoId) || null : null;
+    ultimoDestinoId = destinoId || null;
     mostrarVista("plano");
     dibujarPlano(plano, contenedores, destino);
     if (!destinoId) $("#buscar-codigo").focus(); // listo para escanear
+  });
+}
+
+// Plano 3D: el depósito completo, con la ruta al último destino si lo hay.
+async function verPlano3D() {
+  await intentar(async () => {
+    const ubicaciones = await P.ubicaciones.listar(clienteActivo);
+    const plano = Plano.construirPlano(ubicaciones);
+    const destino = ultimoDestinoId ? ubicaciones.find((u) => u.id === ultimoDestinoId) || null : null;
+    const ruta = destino ? Plano.calcularRuta(plano, destino) : null;
+    mostrarVista("plano3d");
+    Plano3D.montar(document.getElementById("plano3d-caja"), plano, destino ? destino.pasillo : null, ruta ? ruta.puntos : null);
   });
 }
 

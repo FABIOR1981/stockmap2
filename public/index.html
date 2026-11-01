@@ -122,6 +122,8 @@
     .fila-busqueda > div { flex: 1; min-width: 0; }
     .plano-pasos { margin: 0 0 16px; padding-left: 20px; color: var(--tinta-suave); }
     .plano-pasos li { margin-bottom: 4px; }
+    .plano3d-caja { width: 100%; min-height: 380px; border: 1px solid var(--linea); border-radius: var(--radio-chico); overflow: hidden; background: #eceff3; }
+    .plano3d-caja canvas { display: block; width: 100%; }
     .plano-svg {
       overflow-x: auto;
       border: 1px solid var(--linea);
@@ -406,6 +408,7 @@
         <button type="button" data-vista="contenedores" aria-current="page">Contenedores</button>
         <button type="button" data-vista="ubicaciones">Ubicaciones</button>
         <button type="button" data-vista="plano">Plano</button>
+        <button type="button" data-vista="plano3d">Plano 3D</button>
         <!-- Solo para desarrollo: quitar antes de usar con clientes reales -->
         <button type="button" id="btn-datos-prueba" class="auxiliar">Cargar datos de prueba</button>
       </nav>
@@ -493,6 +496,15 @@
         </section>
 
         <!-- Vista: plano del depósito -->
+        <section id="vista-plano3d" class="vista oculto">
+          <div class="cabecera-vista">
+            <h1>Plano 3D</h1>
+          </div>
+          <div class="card">
+            <p class="nota" style="margin-top:0">Arrastrá para girar el depósito y usá la rueda del mouse para acercar o alejar. La ruta del último destino buscado se marca en verde.</p>
+            <div id="plano3d-caja" class="plano3d-caja"></div>
+          </div>
+        </section>
         <section id="vista-plano" class="vista oculto">
           <div class="cabecera-vista">
             <h1>Plano del depósito</h1>
@@ -524,8 +536,10 @@
     </div>
   </section>
 
+  <script src="vendor/three.min.js"></script>
   <script src="persistencia.js"></script>
   <script src="plano.js"></script>
+  <script src="plano3d.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
