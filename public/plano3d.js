@@ -50,9 +50,34 @@
     }
   }
 
-  // Una estantería de logística: postes, vigas al frente y al fondo, tablas por nivel y cajas.
+  // Forma de cada tipo de contenedor, con la base en y = 0. Alturas de hasta ~0.45, para entrar en un nivel.
+  function formaContenedor(tipo, ancho, fondo) {
+    const g = new THREE.Group();
+    const material = (color) => new THREE.MeshLambertMaterial({ color });
+    if (tipo === "bolsa") {
+      const bolsa = new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 12), material(0xe9e2d0));
+      bolsa.scale.set(ancho, 0.42, fondo * 0.8);
+      bolsa.position.y = 0.21;
+      g.add(bolsa);
+    } else if (tipo === "tambor") {
+      const r = Math.min(ancho, fondo) * 0.4;
+      const tambor = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 18), material(0x3d6fb0));
+      tambor.position.y = 0.21;
+      g.add(tambor);
+    } else if (tipo === "pallet") {
+      g.add(caja(ancho, 0.07, fondo * 0.8, material(0xa67c52), 0, 0.035, 0));
+      g.add(caja(ancho * 0.8, 0.34, fondo * 0.6, material(0xc8a26b), 0, 0.24, 0));
+    } else if (tipo === "otro") {
+      g.add(caja(ancho * 0.8, 0.3, fondo * 0.6, material(0x7d8a96), 0, 0.15, 0));
+    } else {
+      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, material(0xc8a26b), 0, 0.2, 0));
+    }
+    return g;
+  }
+
+  // Una estantería de logística: postes, vigas al frente y al fondo, tablas por nivel y contenedores.
   // Niveles = estantes (el 1 abajo); bahías = divisiones (la a a la izquierda).
-  function construirEstanteria3D(plano, letra, ocupadas, destacada) {
+  function construirEstanteria3D(plano, letra, contenidoPorUbicacion, destacada) {
     const b = plano.bandas[letra];
     const grupo = new THREE.Group();
     const x0 = b.x0 - plano.W / 2;
@@ -72,7 +97,6 @@
     const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x1e4e8c });
     const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0xe07a1f });
     const tabla = new THREE.MeshLambertMaterial({ color: 0xb8c2cc });
-    const cartones = [new THREE.MeshLambertMaterial({ color: 0xc8a26b }), new THREE.MeshLambertMaterial({ color: 0xb08d55 })];
 
     // Postes en cada límite de bahía, al frente y al fondo.
     for (let i = 0; i <= bahias; i++) {
@@ -87,23 +111,19 @@
       grupo.add(caja(ancho, 0.08, 0.08, acero, (x0 + x1) / 2, yViga, z0 + 0.05));
       grupo.add(caja(ancho, 0.08, 0.08, acero, (x0 + x1) / 2, yViga, z1 - 0.05));
     }
-    // Cajas: una por ubicación con contenedores.
+    // Contenedores: un objeto por contenedor, con la forma de su tipo; si hay varios en la ubicación, van uno al lado del otro.
     datos.celdas.forEach((u) => {
-      if (!ocupadas.has(u.id)) return;
+      const tipos = contenidoPorUbicacion.get(u.id);
+      if (!tipos || !tipos.length) return;
       const k = niveles.indexOf(parseInt(u.estante, 10));
       const j = datos.divisiones.indexOf(u.nivel);
       if (k < 0 || j < 0) return;
-      const bh = 0.5;
-      const cajaCarton = caja(
-        anchoBahia * 0.62,
-        bh,
-        fondo * 0.6,
-        cartones[(k + j) % 2],
-        x0 + (j + 0.5) * anchoBahia,
-        k * h + 0.06 + bh / 2,
-        (z0 + z1) / 2
-      );
-      grupo.add(cajaCarton);
+      const anchoCaja = (anchoBahia * 0.85) / tipos.length;
+      tipos.forEach((tipo, i) => {
+        const forma = formaContenedor(tipo, anchoCaja * 0.9, fondo * 0.6);
+        forma.position.set(x0 + j * anchoBahia + anchoBahia * 0.075 + anchoCaja * (i + 0.5), k * h + 0.06, (z0 + z1) / 2);
+        grupo.add(forma);
+      });
     });
     return grupo;
   }
@@ -119,7 +139,8 @@
   }
 
   // Dibuja el depósito en `caja`. `letraDestino` resalta una estantería; `puntosRuta` es el recorrido (celdas).
-  function montar(contenedor, plano, letraDestino, puntosRuta, ocupadas) {
+  // `contenidoPorUbicacion`: Map de id de ubicación -> lista de tipos de contenedor que hay en ella.
+  function montar(contenedor, plano, letraDestino, puntosRuta, contenidoPorUbicacion) {
     desmontar();
     if (!plano.estanterias.length) {
       contenedor.textContent = "Todavía no hay estanterías para mostrar.";
@@ -143,7 +164,7 @@
 
     // Estanterías de logística: estructura con postes, vigas y tablas por nivel; cajas donde hay contenedores.
     plano.estanterias.forEach((letra) => {
-      const grupo = construirEstanteria3D(plano, letra, ocupadas, letra === letraDestino);
+      const grupo = construirEstanteria3D(plano, letra, contenidoPorUbicacion, letra === letraDestino);
       escena.add(grupo);
       const b = plano.bandas[letra];
       const c = aMundo(plano, (b.x0 + b.x1 + 1) / 2, (b.y0 + b.y1 + 1) / 2);

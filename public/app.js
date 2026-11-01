@@ -230,9 +230,14 @@ async function verPlano3D() {
     const destino = ultimoDestinoId ? ubicaciones.find((u) => u.id === ultimoDestinoId) || null : null;
     const ruta = destino ? Plano.calcularRuta(plano, destino) : null;
     const contenedores = await P.contenedores.listar(clienteActivo);
-    const ocupadas = new Set(contenedores.map((c) => c.ubicacionId).filter(Boolean));
+    // Tipos de contenedor que hay en cada ubicación, para dibujar cada uno con su forma.
+    const contenidoPorUbicacion = new Map();
+    contenedores.forEach((c) => {
+      if (!c.ubicacionId) return;
+      contenidoPorUbicacion.set(c.ubicacionId, [...(contenidoPorUbicacion.get(c.ubicacionId) || []), c.tipo]);
+    });
     mostrarVista("plano3d");
-    Plano3D.montar(document.getElementById("plano3d-caja"), plano, destino ? destino.pasillo : null, ruta ? ruta.puntos : null, ocupadas);
+    Plano3D.montar(document.getElementById("plano3d-caja"), plano, destino ? destino.pasillo : null, ruta ? ruta.puntos : null, contenidoPorUbicacion);
   });
 }
 
