@@ -50,27 +50,91 @@
     }
   }
 
+  // Texturas dibujadas con canvas (sin imágenes externas): cartón y madera. Se crean una vez por vista.
+  let TEX = null;
+  function texturas() {
+    if (TEX) return TEX;
+    const hacer = (dibujar) => {
+      const c = document.createElement("canvas");
+      c.width = 128;
+      c.height = 128;
+      dibujar(c.getContext("2d"));
+      return new THREE.CanvasTexture(c);
+    };
+    const carton = hacer((g) => {
+      g.fillStyle = "#c8a26b";
+      g.fillRect(0, 0, 128, 128);
+      g.fillStyle = "#e4c995"; // cinta de embalar
+      g.fillRect(52, 0, 24, 128);
+      g.fillStyle = "rgba(90,60,25,0.25)"; // juntas de la caja
+      g.fillRect(0, 0, 128, 3);
+      g.fillRect(0, 125, 128, 3);
+    });
+    const madera = hacer((g) => {
+      g.fillStyle = "#a67c52";
+      g.fillRect(0, 0, 128, 128);
+      for (let y = 0; y < 128; y += 16) {
+        g.fillStyle = y % 32 ? "rgba(70,45,20,0.35)" : "rgba(230,200,150,0.25)";
+        g.fillRect(0, y, 128, 6);
+      }
+    });
+    TEX = { carton, madera };
+    return TEX;
+  }
+
   // Forma de cada tipo de contenedor, con la base en y = 0. Alturas de hasta ~0.45, para entrar en un nivel.
   function formaContenedor(tipo, ancho, fondo) {
     const g = new THREE.Group();
-    const material = (color) => new THREE.MeshLambertMaterial({ color });
+    const t = texturas();
+    const liso = (color) => new THREE.MeshLambertMaterial({ color });
+    const conTextura = (mapa) => new THREE.MeshLambertMaterial({ map: mapa });
     if (tipo === "bolsa") {
-      const bolsa = new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 12), material(0xe9e2d0));
-      bolsa.scale.set(ancho, 0.42, fondo * 0.8);
-      bolsa.position.y = 0.21;
+      // Bolsa: esfera achatada con la superficie levemente irregular y un cierre arriba.
+      const geo = new THREE.SphereGeometry(0.5, 20, 14);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const ruido = 1 + 0.05 * Math.sin(x * 9 + z * 5) * Math.cos(y * 7);
+        pos.setXYZ(i, x * ruido, y * ruido, z * ruido);
+      }
+      geo.computeVertexNormals();
+      const bolsa = new THREE.Mesh(geo, liso(0xe9e2d0));
+      bolsa.scale.set(ancho, 0.4, fondo * 0.8);
+      bolsa.position.y = 0.2;
       g.add(bolsa);
+      const cierre = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.1, 10), liso(0xc9bfa8));
+      cierre.scale.set(ancho, 1, fondo * 0.8);
+      cierre.position.y = 0.42;
+      g.add(cierre);
     } else if (tipo === "tambor") {
+      // Tambor: cilindro con dos zunchos metálicos.
       const r = Math.min(ancho, fondo) * 0.4;
-      const tambor = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 18), material(0x3d6fb0));
-      tambor.position.y = 0.21;
-      g.add(tambor);
+      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0x3d6fb0));
+      cuerpo.position.y = 0.21;
+      g.add(cuerpo);
+      [0.06, 0.36].forEach((y) => {
+        const zuncho = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.02, 6, 22), liso(0xb8c2cc));
+        zuncho.rotation.x = Math.PI / 2;
+        zuncho.position.y = y;
+        g.add(zuncho);
+      });
     } else if (tipo === "pallet") {
-      g.add(caja(ancho, 0.07, fondo * 0.8, material(0xa67c52), 0, 0.035, 0));
-      g.add(caja(ancho * 0.8, 0.34, fondo * 0.6, material(0xc8a26b), 0, 0.24, 0));
+      // Pallet: tres patines de madera, tablas arriba y dos cajas de carga.
+      const madera = conTextura(t.madera);
+      [-0.35, 0, 0.35].forEach((f) => g.add(caja(0.08, 0.08, fondo * 0.8, madera, ancho * f * 0.5, 0.04, 0)));
+      for (let i = 0; i < 4; i++) {
+        g.add(caja(ancho * 0.92, 0.025, fondo * 0.18, madera, 0, 0.1, -fondo * 0.36 + i * fondo * 0.24));
+      }
+      const carton = conTextura(t.carton);
+      g.add(caja(ancho * 0.7, 0.2, fondo * 0.5, carton, 0, 0.22, 0));
+      g.add(caja(ancho * 0.6, 0.16, fondo * 0.45, carton, 0.03, 0.4, 0));
     } else if (tipo === "otro") {
-      g.add(caja(ancho * 0.8, 0.3, fondo * 0.6, material(0x7d8a96), 0, 0.15, 0));
+      // Cajón de madera: cuerpo de tablas y marco.
+      g.add(caja(ancho * 0.8, 0.3, fondo * 0.6, conTextura(t.madera), 0, 0.15, 0));
+      g.add(caja(ancho * 0.84, 0.03, fondo * 0.64, liso(0x6b4e30), 0, 0.3, 0));
     } else {
-      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, material(0xc8a26b), 0, 0.2, 0));
+      // Caja de cartón con cinta.
+      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, conTextura(t.carton), 0, 0.2, 0));
     }
     return g;
   }
@@ -150,17 +214,27 @@
     const escena = new THREE.Scene();
     escena.background = new THREE.Color("#eceff3");
     escena.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.9));
-    const sol = new THREE.DirectionalLight(0xffffff, 0.6);
+    const sol = new THREE.DirectionalLight(0xffffff, 0.7);
     sol.position.set(6, 14, 8);
+    sol.castShadow = true;
+    sol.shadow.mapSize.set(1024, 1024);
+    Object.assign(sol.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 50 });
     escena.add(sol);
 
-    // Piso del depósito
+    // Piso del depósito, con la línea amarilla de seguridad alrededor.
     const piso = new THREE.Mesh(
       new THREE.PlaneGeometry(plano.W, plano.H),
-      new THREE.MeshLambertMaterial({ color: 0xf4f7f9 })
+      new THREE.MeshLambertMaterial({ color: 0xe6eaee })
     );
     piso.rotation.x = -Math.PI / 2;
+    piso.receiveShadow = true;
     escena.add(piso);
+    const amarillo = new THREE.MeshLambertMaterial({ color: 0xe8b82a });
+    const m = 0.12;
+    escena.add(caja(plano.W, 0.02, m, amarillo, 0, 0.011, -plano.H / 2 + m / 2));
+    escena.add(caja(plano.W, 0.02, m, amarillo, 0, 0.011, plano.H / 2 - m / 2));
+    escena.add(caja(m, 0.02, plano.H, amarillo, -plano.W / 2 + m / 2, 0.011, 0));
+    escena.add(caja(m, 0.02, plano.H, amarillo, plano.W / 2 - m / 2, 0.011, 0));
 
     // Estanterías de logística: estructura con postes, vigas y tablas por nivel; cajas donde hay contenedores.
     plano.estanterias.forEach((letra) => {
@@ -184,12 +258,22 @@
 
     if (puntosRuta && puntosRuta.length > 1) dibujarRuta(plano, puntosRuta, escena);
 
+    // Sombras para todos los objetos (estanterías, contenedores, ruta).
+    escena.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+
     // Cámara con órbita alrededor del centro del depósito
     const w = contenedor.clientWidth || 600;
     const h = Math.max(380, Math.round(w * 0.75));
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w, h);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     contenedor.innerHTML = "";
     contenedor.appendChild(renderer.domElement);
     const camara = new THREE.PerspectiveCamera(45, w / h, 0.1, 300);
