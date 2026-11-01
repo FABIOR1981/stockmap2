@@ -115,7 +115,7 @@
     } else if (tipo === "tambor") {
       // Tarro metálico: cilindro gris con aros arriba y abajo, y tapa.
       const r = Math.min(ancho, fondo) * 0.4;
-      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0x7d8a97));
+      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0xdfe4ea));
       cuerpo.position.y = 0.21;
       g.add(cuerpo);
       const tapa = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 1.02, 0.03, 22), liso(0x5f6b77));
@@ -141,7 +141,7 @@
       g.add(caja(ancho * 0.74, 0.4, fondo * 0.52, new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 }), 0, 0.3, 0));
     } else if (tipo === "otro") {
       // Cubo genérico gris con tapa oscura.
-      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, liso(0x8e969e), 0, 0.2, 0));
+      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, liso(0xd9dee4), 0, 0.2, 0));
       g.add(caja(ancho * 0.84, 0.04, fondo * 0.64, liso(0x5b636c), 0, 0.42, 0));
     } else {
       // Caja de cartón con cinta de embalar sobre la tapa.
@@ -170,10 +170,10 @@
     const h = ALTO_ESTANTERIA / n;
     const anchoBahia = ancho / bahias;
 
-    // Estructura metálica clara: contrasta con el piso epóxico oscuro.
-    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x9aa4af });
-    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0xc3cbd4 });
-    const tabla = new THREE.MeshLambertMaterial({ color: 0xe3e7ec });
+    // Estructura metálica en gris medio: contrasta con el piso oscuro sin saturar la vista.
+    const acero = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x7a8591 });
+    const poste = new THREE.MeshLambertMaterial({ color: destacada ? 0x2a7a75 : 0x5f6a76 });
+    const tabla = new THREE.MeshLambertMaterial({ color: 0x9aa4af });
 
     // Postes en cada límite de bahía, al frente y al fondo.
     for (let i = 0; i <= bahias; i++) {

@@ -70,7 +70,7 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **"Tambor" se llama "Tarro" en la interfaz.** Es como lo nombra el usuario. El valor interno (`tambor`) no cambia, así que no hay que migrar datos. Solo cambia el nombre que se muestra (`NOMBRE_TIPO` en `app.js`).
 
-**Estanterías claras sobre piso oscuro.** Con el piso epóxico oscuro, las estanterías oscuras se confundían con el piso. Se usa acero claro para postes, vigas y tablas. El piso se mantiene.
+**Estanterías claras sobre piso oscuro.** Con el piso epóxico oscuro, las estanterías oscuras se confundían con el piso. Se usa acero gris medio para postes, vigas y tablas, para no saturar la vista. Los contenedores quedan en colores que contrastan con la estructura (cartón, bolsa crema, tarro y cubo claros). El piso se mantiene.
 
 ## Pendientes de decisión
 
