@@ -14,6 +14,7 @@
 
 (function () {
   const ESTANTERIAS_POR_PASILLO = 5;
+  const PASO_PASILLOS = 6; // columnas entre un pasillo y el siguiente
   const esNumero = (texto) => /^\d+$/.test(String(texto || "").trim());
 
   function construirPlano(ubicaciones) {
@@ -33,8 +34,8 @@
     const maxEstante = conPosicion.reduce((m, u) => Math.max(m, parseInt(u.estante, 10)), 0);
     const corredores = estanterias.length ? Math.floor((estanterias.length - 1) / ESTANTERIAS_POR_PASILLO) + 1 : 0;
     const filasPorPasillo = Math.min(ESTANTERIAS_POR_PASILLO, estanterias.length);
-    // Distancia entre pasillos, en columnas: largo de la franja más un espacio.
-    const paso = maxEstante + 2;
+    // Distancia entre pasillos, en columnas del plano (fija: las franjas no muestran estantes).
+    const paso = PASO_PASILLOS;
     return {
       estanterias,
       posicion,

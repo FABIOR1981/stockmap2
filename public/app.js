@@ -229,7 +229,7 @@ function dibujarPlano(plano, contenedores, destino) {
   }
 
   // Geometría del dibujo
-  const PASO_X = 64;
+  const PASO_X = 36; // separación horizontal entre columnas del plano (los estantes no se dibujan aquí)
   const PASO_Y = 84;
   const TOP = 80;
   const IZQ = 110;
@@ -237,31 +237,18 @@ function dibujarPlano(plano, contenedores, destino) {
   const Y = (fila) => TOP + fila * PASO_Y + PASO_Y / 2;
   const { paso, maxEstante, corredores, filasPorPasillo } = plano;
   const ultimoPasillo = Math.max(0, corredores - 1) * paso; // columna del último pasillo
-  const bordeDerecho = X(ultimoPasillo + maxEstante + 1) + 20;
-  const ancho = bordeDerecho + 60;
+  // Cada pasillo es una franja vertical (de ancho 22). Las estanterías van a su derecha, sin tocarlo.
+  const SEPARACION = 14; // espacio entre el pasillo y la franja de la estantería
+  const bandaAncho = 170;
+  const ancho = X(ultimoPasillo) + SEPARACION + bandaAncho + 24;
   const alto = TOP + filasPorPasillo * PASO_Y + 24;
   // Entrada arriba a la izquierda; la calle transversal (fila -1) une los pasillos.
   const yCalle = -1;
 
   const partes = [];
 
-  // Franjas de estanterías, cada una tocable; la del destino se resalta.
-  plano.estanterias.forEach((letra) => {
-    const pos = plano.posicion[letra];
-    const cx = pos.corredor * paso;
-    const esDestino = destino && destino.pasillo === letra;
-    partes.push(
-      `<g data-pasillo="${escapar(letra)}" style="cursor:pointer">
-        <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
-        <rect x="${X(cx) - 22}" y="${Y(pos.fila) - 34}" width="${X(cx + maxEstante + 1) - X(cx) + 22}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#e3e9ef"}" stroke-width="${esDestino ? 2 : 1}"/>
-      </g>`
-    );
-    partes.push(
-      `<text x="${X(cx + maxEstante + 1) + 10}" y="${Y(pos.fila) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(letra)}</text>`
-    );
-  });
-
-  // Pasillos (líneas verticales) y calle transversal con la entrada
+  // Pasillos (líneas verticales) y calle transversal con la entrada.
+  // Van primero, para que las franjas queden por encima en el dibujo.
   if (corredores > 0) {
     for (let c = 0; c < corredores; c++) {
       partes.push(
@@ -271,13 +258,28 @@ function dibujarPlano(plano, contenedores, destino) {
     partes.push(
       `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
     partes.push(
       `<text x="${X(-1)}" y="${Y(yCalle) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
     );
+    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
   }
 
-  // Ruta hasta la estantería destino (el detalle de estante y división está en la vista de frente)
+  // Franjas de estanterías, cada una tocable, con su letra dentro; la del destino se resalta.
+  plano.estanterias.forEach((letra) => {
+    const pos = plano.posicion[letra];
+    const x0 = X(pos.corredor * paso) + SEPARACION;
+    const esDestino = destino && destino.pasillo === letra;
+    partes.push(
+      `<g data-pasillo="${escapar(letra)}" style="cursor:pointer">
+        <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
+        <rect x="${x0}" y="${Y(pos.fila) - 34}" width="${bandaAncho}" height="${PASO_Y - 16}" rx="8" fill="${esDestino ? "#e2eeed" : "#f4f7f9"}" stroke="${esDestino ? "#1f5f5b" : "#c9d3dd"}" stroke-width="${esDestino ? 2 : 1}"/>
+        <text x="${x0 + 14}" y="${Y(pos.fila) + 5}" font-size="15" font-weight="700" fill="#14202b">${escapar(letra)}</text>
+      </g>`
+    );
+  });
+
+  // Ruta hasta la estantería destino (el detalle de estante y división está en la vista de frente).
+  // Va hasta el pasillo, a la altura de la franja: no entra en la franja.
   if (ruta) {
     const puntos = ruta.puntos.map((p) => `${X(p.x)},${Y(p.y)}`).join(" ");
     partes.push(
