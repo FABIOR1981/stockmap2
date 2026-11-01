@@ -25,4 +25,5 @@ Debajo del plano 3D hay un recuadro con una foto fija de la estantería donde es
 
 - No muestra el contenido de cada caja ni los códigos; eso sigue en la vista de frente del plano 2D.
 - No cambia datos: solo lee la lista de ubicaciones y la ruta.
+- Ocupa todo el ancho disponible de la pantalla: el plano tiene 3/5 del ancho y el detalle del contenedor 2/5, lado a lado. El alto del plano acompaña al ancho sin superar el 80% de la altura de la ventana.
 - Es un prototipo, probado en navegador de prueba con datos de ejemplo. Falta probarlo en celular y en pantallas grandes.

@@ -10,6 +10,10 @@
   // Convierte coordenadas de celda (continuas) a coordenadas de la escena, centradas en el origen.
   const aMundo = (plano, xc, yc) => ({ x: xc - plano.W / 2, z: yc - plano.H / 2 });
 
+  // Alto del lienzo del plano: acompaña al ancho, pero no supera casi toda la altura de la pantalla.
+  const alturaPlano = (ancho) =>
+    Math.max(420, Math.min(Math.round(ancho * 0.8), Math.round(window.innerHeight * 0.8)));
+
   // Pieza rectangular (poste, viga, tabla o caja) centrada en (x, y, z).
   const caja = (w, h, d, material, x, y, z) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
@@ -281,7 +285,7 @@
 
     // Cámara con órbita alrededor del centro del depósito
     const w = contenedor.clientWidth || 600;
-    const h = Math.max(380, Math.round(w * 0.75));
+    const h = alturaPlano(w);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w, h);
@@ -291,7 +295,7 @@
     contenedor.appendChild(renderer.domElement);
     const camara = new THREE.PerspectiveCamera(45, w / h, 0.1, 300);
 
-    const estado = { theta: 2.7, phi: 0.85, radio: Math.max(plano.W, plano.H) * 1.9, arrastrando: false, x: 0, y: 0 };
+    const estado = { theta: 2.7, phi: 0.85, radio: Math.max(plano.W, plano.H) * 1.6, arrastrando: false, x: 0, y: 0 };
     const actualizarCamara = () => {
       const { theta, phi, radio } = estado;
       camara.position.set(
@@ -336,7 +340,7 @@
 
     const alCambiarTamano = () => {
       const nuevoW = contenedor.clientWidth || 600;
-      const nuevoH = Math.max(380, Math.round(nuevoW * 0.75));
+      const nuevoH = alturaPlano(nuevoW);
       renderer.setSize(nuevoW, nuevoH);
       camara.aspect = nuevoW / nuevoH;
       camara.updateProjectionMatrix();

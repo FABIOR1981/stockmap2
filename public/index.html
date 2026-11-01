@@ -127,8 +127,10 @@
     .plano3d-chico { min-height: 300px; }
     .plano3d-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
     @media (min-width: 1000px) {
-      .plano3d-doble { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .plano3d-doble { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
     }
+    /* La vista 3D usa todo el ancho disponible, no el máximo de los textos. */
+    .contenido:has(#vista-plano3d:not(.oculto)) { max-width: none; }
     .plano-svg {
       overflow-x: auto;
       border: 1px solid var(--linea);
