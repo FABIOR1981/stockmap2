@@ -49,7 +49,8 @@ Así el camino es el más corto posible, y la ruta elige el lado de la estanter�
 
 ## Cómo se llega a la vista
 
-- **Menú → Plano:** muestra todo el depósito, sin ruta.
+- **Menú → Plano:** muestra todo el depósito, sin ruta, y deja el campo de búsqueda listo para escanear.
+- **Plano → campo "Código del contenedor":** se escribe el código, o se escanea con un lector (que escribe el código y envía con Enter). Busca el contenedor sin distinguir mayúsculas y muestra la ruta a su ubicación. Si no existe, o no tiene ubicación, muestra un aviso.
 - **Contenedores → Cómo llegar:** abre el plano con la ruta más corta hasta la estantería del contenedor, y abre su vista de frente con la celda resaltada.
 - Un contenedor sin ubicación muestra "Sin ubicación" en lugar del botón.
 

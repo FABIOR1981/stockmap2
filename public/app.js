@@ -206,8 +206,26 @@ async function verPlano(destinoId) {
     const destino = destinoId ? ubicaciones.find((u) => u.id === destinoId) || null : null;
     mostrarVista("plano");
     dibujarPlano(plano, contenedores, destino);
+    if (!destinoId) $("#buscar-codigo").focus(); // listo para escanear
   });
 }
+
+// Busca un contenedor por código (escrito o leído por un lector de códigos) y muestra cómo llegar.
+$("#form-buscar-codigo").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const campo = $("#buscar-codigo");
+  const codigo = campo.value.trim();
+  if (!codigo) return;
+  await intentar(async () => {
+    const contenedores = await P.contenedores.listar(clienteActivo);
+    const c = contenedores.find((x) => x.codigo.toLowerCase() === codigo.toLowerCase());
+    if (!c) throw new Error(`No hay ningún contenedor con el código ${codigo}.`);
+    if (!c.ubicacionId) throw new Error(`El contenedor ${c.codigo} no tiene ubicación asignada.`);
+    campo.value = "";
+    await verPlano(c.ubicacionId);
+  });
+  campo.focus();
+});
 
 function dibujarPlano(plano, contenedores, destino) {
   vistaPlano = {

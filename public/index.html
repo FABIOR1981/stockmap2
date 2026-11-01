@@ -118,6 +118,8 @@
     .muted { color: var(--tinta-suave); font-size: 0.88rem; }
 
     .plano-destino { margin: 0 0 8px; font-weight: 600; }
+    .fila-busqueda { display: flex; gap: 8px; align-items: flex-end; margin: 0 0 16px; }
+    .fila-busqueda > div { flex: 1; min-width: 0; }
     .plano-pasos { margin: 0 0 16px; padding-left: 20px; color: var(--tinta-suave); }
     .plano-pasos li { margin-bottom: 4px; }
     .plano-svg {
@@ -496,6 +498,13 @@
             <h1>Plano del depósito</h1>
           </div>
           <div class="card">
+            <form id="form-buscar-codigo" class="fila-busqueda" autocomplete="off">
+              <div>
+                <label for="buscar-codigo">Código del contenedor</label>
+                <input id="buscar-codigo" type="text" required placeholder="Escribilo o escanealo" />
+              </div>
+              <button type="submit" class="primario">Buscar</button>
+            </form>
             <p id="plano-destino" class="plano-destino"></p>
             <ol id="plano-pasos" class="plano-pasos"></ol>
             <div class="plano-doble">
