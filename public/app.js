@@ -256,12 +256,13 @@ function dibujarPlano(plano, contenedores, destino) {
       );
     }
     partes.push(
-      `<line x1="${X(-1)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
+      `<line x1="${X(0)}" y1="${Y(yCalle)}" x2="${X(ultimoPasillo)}" y2="${Y(yCalle)}" stroke="#e3e9ef" stroke-width="22" stroke-linecap="round"/>`
     );
+    const xEntrada = X(plano.entrada.x);
     partes.push(
-      `<text x="${X(-1)}" y="${Y(yCalle) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
+      `<text x="${xEntrada}" y="${Y(yCalle) - 14}" text-anchor="middle" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
     );
-    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
+    partes.push(`<circle cx="${xEntrada}" cy="${Y(yCalle)}" r="6" fill="#4f5c69"/>`);
   }
 
   // Franjas de estanterías, cada una tocable, con su letra dentro; la del destino se resalta.
@@ -285,7 +286,7 @@ function dibujarPlano(plano, contenedores, destino) {
     partes.push(
       `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${X(-1)}" cy="${Y(yCalle)}" r="6" fill="#1f5f5b"/>`);
+    partes.push(`<circle cx="${X(plano.entrada.x)}" cy="${Y(yCalle)}" r="6" fill="#1f5f5b"/>`);
   }
 
   $("#plano-svg").innerHTML =

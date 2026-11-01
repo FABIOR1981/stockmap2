@@ -19,7 +19,7 @@ Una ubicación completa se muestra como `A · 1 · a`.
 El plano se arma a partir de las ubicaciones cargadas. No se guardan posiciones: se deducen de la estantería y el estante.
 
 - **Pasillos:** las estanterías se agrupan de cinco en cinco, en orden alfabético. A–E forman el pasillo 1, F–J el pasillo 2, y así. Cada pasillo es una línea vertical, y los pasillos quedan uno al lado del otro.
-- **Calle transversal:** la entrada está arriba a la izquierda, y una calle horizontal la une con todos los pasillos.
+- **Calle transversal:** una calle horizontal une todos los pasillos, en la cabecera del galpón. La **entrada** está en el medio de esa calle.
 - **Estanterías = franjas horizontales** a la derecha de cada pasillo. Se ordenan alfabéticamente dentro de su pasillo. Cada franja se puede tocar para abrir su vista de frente.
 - **Estantes y divisiones no se dibujan en el plano general.** El plano general solo muestra dónde está cada estantería; el detalle de estante y división está en la vista de frente.
 - **Pasillo principal:** corre por la columna 0, a la izquierda de todos los estantes.
@@ -46,7 +46,7 @@ Una ubicación cuyo estante no es numérico no tiene posición en el plano. Esto
 
 Para llegar a una ubicación con estantería `E`, estante `N` y división `d`:
 
-1. Entrar por la **entrada** (arriba a la izquierda) y avanzar por la **calle transversal** hasta el pasillo de la estantería `E`.
+1. Entrar por la **entrada** (en el medio de la calle transversal) y avanzar por la **calle** hasta el pasillo de la estantería `E`.
 2. Bajar por ese **pasillo** hasta la franja de la estantería `E`.
 
 En el plano general la ruta termina en la franja de la estantería `E`. El estante `N` y la división `d` se ven en la **vista de frente** de esa estantería, con la celda destino resaltada.
