@@ -119,14 +119,14 @@
     } else if (tipo === "tambor") {
       // Tarro metálico: cilindro gris con aros arriba y abajo, y tapa.
       const r = Math.min(ancho, fondo) * 0.4;
-      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0xdfe4ea));
+      const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.42, 22), liso(0x2f6fb5));
       cuerpo.position.y = 0.21;
       g.add(cuerpo);
-      const tapa = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 1.02, 0.03, 22), liso(0x5f6b77));
+      const tapa = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.02, r * 1.02, 0.03, 22), liso(0x23558a));
       tapa.position.y = 0.435;
       g.add(tapa);
       [0.06, 0.36].forEach((y) => {
-        const zuncho = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.02, 6, 22), liso(0x4a5560));
+        const zuncho = new THREE.Mesh(new THREE.TorusGeometry(r * 1.01, 0.02, 6, 22), liso(0x1d4a7a));
         zuncho.rotation.x = Math.PI / 2;
         zuncho.position.y = y;
         g.add(zuncho);
@@ -145,8 +145,8 @@
       g.add(caja(ancho * 0.74, 0.4, fondo * 0.52, new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.22 }), 0, 0.3, 0));
     } else if (tipo === "otro") {
       // Cubo genérico gris con tapa oscura.
-      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, liso(0xd9dee4), 0, 0.2, 0));
-      g.add(caja(ancho * 0.84, 0.04, fondo * 0.64, liso(0x5b636c), 0, 0.42, 0));
+      g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, liso(0x7b5ea7), 0, 0.2, 0));
+      g.add(caja(ancho * 0.84, 0.04, fondo * 0.64, liso(0x5a4480), 0, 0.42, 0));
     } else {
       // Caja de cartón con cinta de embalar sobre la tapa.
       g.add(caja(ancho * 0.8, 0.4, fondo * 0.6, conTextura(t.carton), 0, 0.2, 0));
