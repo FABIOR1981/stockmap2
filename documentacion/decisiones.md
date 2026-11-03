@@ -81,3 +81,13 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).
 - Método de cobro de las suscripciones.
 - Nombre comercial del producto para la marca blanca.
+
+## 2026-11-03 (revisión de diseño y accesibilidad)
+
+**Pantallas de trabajo sin tinte en el menú ni en las etiquetas.** El ítem activo del menú y la etiqueta del usuario pasan a gris neutro; el verde queda para el botón principal y los datos. Los encabezados de tabla no llevan banda de color.
+
+**Conteos en la cabecera de cada lista.** Contenedores y Ubicaciones muestran cuántos hay y cuántos no tienen ubicación, calculados de los datos.
+
+**El plano se maneja con teclado.** Cada estantería y cada celda de la vista de frente es un botón enfocable (Tab, Enter o Espacio). Los botones "Cómo llegar" y "Borrar" nombran el contenedor o la ubicación a la que se refieren.
+
+**Avisos anunciados a lectores de pantalla.** Los errores y las confirmaciones de guardado se leen al aparecer. El pulso del destino en el plano se apaga si el sistema pide menos movimiento.

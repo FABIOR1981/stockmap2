@@ -103,7 +103,7 @@
       .menu button { width: 100%; }
     }
     .menu button:hover:not(:disabled) { background: #e9eef3; color: var(--tinta); }
-    .menu button[aria-current="page"] { background: var(--acento-suave); color: var(--acento); }
+    .menu button[aria-current="page"] { background: #e3e9ef; color: var(--tinta); }
     .menu .auxiliar {
       border: 1px dashed var(--linea-fuerte);
       color: var(--tinta-suave);
@@ -177,9 +177,22 @@
     }
     .cabecera-vista h1 {
       margin: 0;
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .resumen-vista { margin: 4px 0 0; color: var(--tinta-suave); font-size: 0.9rem; }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .barra-cliente { margin-bottom: 20px; max-width: 360px; }
@@ -219,7 +232,7 @@
     .campo.ancho { grid-column: 1 / -1; }
 
     label {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: var(--tinta-suave);
       margin-bottom: 6px;
@@ -279,7 +292,7 @@
     .peligro {
       background: transparent;
       color: var(--peligro);
-      height: 32px;
+      height: 36px;
       padding: 0 10px;
       font-size: 0.88rem;
     }
@@ -309,12 +322,13 @@
       white-space: nowrap;
     }
     thead th {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--tinta-suave);
-      background: #f4f7f9;
+      background: transparent;
       border-bottom-color: var(--linea-fuerte);
     }
+    td.descripcion { white-space: normal; min-width: 180px; }
     tbody tr:hover td { background: #f6f9fb; }
     tbody tr:last-child td { border-bottom: none; }
     td strong { font-weight: 650; font-variant-numeric: tabular-nums; }
@@ -330,13 +344,24 @@
     /* ---------- Etiquetas y errores ---------- */
     .etiqueta {
       display: inline-block;
-      background: var(--acento-suave);
-      color: var(--acento);
+      background: #e3e9ef;
+      color: var(--tinta-suave);
       padding: 3px 10px;
       border-radius: 999px;
       font-size: 0.8rem;
       font-weight: 600;
     }
+
+    .aviso.ok {
+      background: var(--acento-suave);
+      color: var(--acento-hover);
+      border-color: #bcd7d4;
+    }
+
+    .plano-svg:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+    .plano-svg g[role="button"]:focus { outline: none; }
+    .plano-svg g[role="button"]:focus-visible rect,
+    #estanteria-svg g[role="button"]:focus-visible rect { stroke: var(--acento); stroke-width: 3; }
 
     .error {
       color: var(--peligro);
@@ -388,7 +413,7 @@
           </svg>
           StockMap
         </div>
-        <h2 class="login-titulo">Ingresar</h2>
+        <h1 class="login-titulo">Ingresar</h1>
         <p class="login-sub">Usá tu email y contraseña para entrar.</p>
         <form id="form-login">
           <label for="email">Email</label>
@@ -397,7 +422,7 @@
           <input id="password" type="password" required autocomplete="current-password" />
           <button type="submit" class="primario ancho-completo">Entrar</button>
         </form>
-        <p id="error-login" class="error oculto"></p>
+        <p id="error-login" class="error oculto" role="alert"></p>
       </div>
     </main>
   </section>
@@ -432,7 +457,7 @@
       </nav>
 
       <div class="contenido">
-        <div id="aviso" class="aviso oculto"></div>
+        <div id="aviso" class="aviso oculto" role="status" aria-live="polite"></div>
 
         <!-- Selector de cliente: solo visible para el admin general -->
         <div id="bloque-cliente" class="oculto barra-cliente">
@@ -444,8 +469,9 @@
         <section id="vista-contenedores" class="vista">
           <div class="cabecera-vista">
             <h1>Contenedores</h1>
-            <button type="button" class="primario" data-alternar="panel-contenedor">Nuevo contenedor</button>
+            <button type="button" class="primario" data-alternar="panel-contenedor" aria-expanded="false" aria-controls="panel-contenedor">Nuevo contenedor</button>
           </div>
+          <p id="resumen-contenedores" class="resumen-vista"></p>
 
           <div id="panel-contenedor" class="card oculto">
             <h2>Nuevo contenedor</h2>
@@ -477,7 +503,7 @@
 
           <div class="tabla-wrap">
             <table>
-              <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th></th></tr></thead>
+              <thead><tr><th>Código</th><th>Tipo</th><th>Ubicación</th><th>Descripción</th><th><span class="sr-only">Acciones</span></th></tr></thead>
               <tbody id="tabla-contenedores"></tbody>
             </table>
           </div>
@@ -487,8 +513,9 @@
         <section id="vista-ubicaciones" class="vista oculto">
           <div class="cabecera-vista">
             <h1>Ubicaciones</h1>
-            <button type="button" class="primario" data-alternar="panel-ubicacion">Nueva ubicación</button>
+            <button type="button" class="primario" data-alternar="panel-ubicacion" aria-expanded="false" aria-controls="panel-ubicacion">Nueva ubicación</button>
           </div>
+          <p id="resumen-ubicaciones" class="resumen-vista"></p>
 
           <div id="panel-ubicacion" class="card oculto">
             <h2>Nueva ubicación</h2>
@@ -507,7 +534,7 @@
 
           <div class="tabla-wrap">
             <table>
-              <thead><tr><th>Estantería</th><th>Estante</th><th>División</th><th></th></tr></thead>
+              <thead><tr><th>Estantería</th><th>Estante</th><th>División</th><th><span class="sr-only">Acciones</span></th></tr></thead>
               <tbody id="tabla-ubicaciones"></tbody>
             </table>
           </div>
@@ -521,11 +548,11 @@
           <div class="plano3d-doble">
             <div class="card">
               <p class="nota" style="margin-top:0">Arrastrá para girar el depósito y usá la rueda del mouse para acercar o alejar. La ruta del último destino buscado se marca en verde.</p>
-              <div id="plano3d-caja" class="plano3d-caja"></div>
+              <div id="plano3d-caja" class="plano3d-caja" role="img" aria-label="Plano 3D del depósito: estanterías, contenedores y ruta marcada"></div>
             </div>
             <div class="card">
               <h2 class="subtitulo">Contenedor buscado</h2>
-              <div id="plano3d-detalle" class="plano3d-caja plano3d-chico"></div>
+              <div id="plano3d-detalle" class="plano3d-caja plano3d-chico" role="img" aria-label="Detalle 3D de la estantería del contenedor buscado"></div>
               <p id="plano3d-detalle-nota" class="nota"></p>
             </div>
           </div>
@@ -548,7 +575,7 @@
             </div>
             <div class="card">
               <p class="nota" style="margin-top:0">El recorrido sale de la entrada y pasa por el frente de cada estantería, en el orden más corto. Las flechas verdes marcan la ida, las rojas la vuelta a la entrada, y los números el orden de las paradas.</p>
-              <div id="ruta3d-caja" class="plano3d-caja"></div>
+              <div id="ruta3d-caja" class="plano3d-caja" role="img" aria-label="Ruta 3D desde la entrada hasta cada estantería, con paradas numeradas"></div>
             </div>
           </div>
         </section>
@@ -568,13 +595,13 @@
             <ol id="plano-pasos" class="plano-pasos"></ol>
             <div class="plano-doble">
               <div class="columna">
-                <div id="plano-svg" class="plano-svg"></div>
+                <div id="plano-svg" class="plano-svg" role="region" tabindex="0" aria-label="Plano del depósito, desplazable"></div>
                 <div id="plano-leyenda" class="plano-leyenda"></div>
                 <p id="plano-sin-posicion" class="nota"></p>
               </div>
               <div class="columna">
                 <h2 id="estanteria-titulo" class="subtitulo"></h2>
-                <div id="estanteria-svg" class="plano-svg"></div>
+                <div id="estanteria-svg" class="plano-svg" role="region" tabindex="0" aria-label="Vista de frente de la estantería, desplazable"></div>
                 <p id="estanteria-detalle" class="nota"></p>
               </div>
             </div>

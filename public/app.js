@@ -98,7 +98,9 @@ $(".menu").addEventListener("click", async (e) => {
 document.addEventListener("click", (e) => {
   const alternar = e.target.closest("[data-alternar]");
   if (alternar) {
-    $(`#${alternar.dataset.alternar}`).classList.toggle("oculto");
+    const panel = $(`#${alternar.dataset.alternar}`);
+    panel.classList.toggle("oculto");
+    alternar.setAttribute("aria-expanded", String(!panel.classList.contains("oculto")));
     return;
   }
   const cerrar = e.target.closest("[data-cerrar]");
@@ -110,6 +112,8 @@ function ocultarPanel(id) {
   panel.classList.add("oculto");
   const form = panel.querySelector("form");
   if (form) form.reset();
+  const boton = document.querySelector(`[data-alternar="${id}"]`);
+  if (boton) boton.setAttribute("aria-expanded", "false");
 }
 
 // ---------------------------------------------------------------------
@@ -157,47 +161,56 @@ async function cargarUbicaciones() {
     $("#ubicacion").innerHTML = `<option value="">Asignar al azar (lugar libre)</option>` + opciones.join("");
 
     // Tabla de la vista Ubicaciones
+    const estanterias = new Set(lista.map((u) => u.pasillo)).size;
+    $("#resumen-ubicaciones").textContent = lista.length
+      ? `${lista.length} ubicaciones en ${estanterias} ${estanterias === 1 ? "estantería" : "estanterías"}.`
+      : "";
     $("#tabla-ubicaciones").innerHTML =
       lista
-        .map(
-          (u) => `
+        .map((u) => {
+          const nombre = `${u.pasillo} · ${u.estante} · ${u.nivel}`;
+          return `
           <tr>
             <td><strong>${escapar(u.pasillo)}</strong></td>
             <td>${escapar(u.estante)}</td>
             <td>${escapar(u.nivel)}</td>
-            <td>${perfil.puedeGestionarUbicaciones ? `<button class="peligro" data-id="${u.id}" data-accion="borrar-ubicacion">Borrar</button>` : ""}</td>
-          </tr>`
-        )
-        .join("") || `<tr><td colspan="4">Todavía no hay ubicaciones.</td></tr>`;
+            <td>${perfil.puedeGestionarUbicaciones ? `<button class="peligro" data-id="${u.id}" data-accion="borrar-ubicacion" aria-label="Borrar la ubicación ${escapar(nombre)}">Borrar</button>` : ""}</td>
+          </tr>`;
+        })
+        .join("") || `<tr><td colspan="4">Todavía no hay ubicaciones. Cargá la primera con "Nueva ubicación".</td></tr>`;
   });
 }
 
 async function cargarContenedores() {
   await intentar(async () => {
     const lista = await P.contenedores.listar(clienteActivo);
+    const sinUbicacion = lista.filter((c) => !c.ubicacionId).length;
+    $("#resumen-contenedores").textContent = lista.length
+      ? `${lista.length} contenedores${sinUbicacion ? `, ${sinUbicacion} sin ubicación asignada` : ""}.`
+      : "";
     $("#tabla-contenedores").innerHTML =
       lista
         .map((c) => {
           const u = c.ubicacion;
           const ubic = u ? `${u.pasillo} · ${u.estante} · ${u.nivel}` : "—";
           const llegar = u
-            ? `<button class="secundario chico" data-accion="llegar" data-ubicacion="${u.id}" data-contenedor="${c.id}">Cómo llegar</button>`
+            ? `<button class="secundario chico" data-accion="llegar" data-ubicacion="${u.id}" data-contenedor="${c.id}" aria-label="Cómo llegar al contenedor ${escapar(c.codigo)}">Cómo llegar</button>`
             : `<span class="muted">Sin ubicación</span>`;
           return `
           <tr>
             <td><strong>${escapar(c.codigo)}</strong>${c.codigoPropio ? `<br><span class="muted">Producto: ${escapar(c.codigoPropio)}</span>` : ""}</td>
             <td>${escapar(nombreTipo(c.tipo))}</td>
             <td>${escapar(ubic)}</td>
-            <td>${escapar(c.descripcion || "")}</td>
+            <td class="descripcion">${escapar(c.descripcion || "")}</td>
             <td>
               <div class="acciones-fila">
                 ${llegar}
-                <button class="peligro" data-id="${c.id}" data-accion="borrar">Borrar</button>
+                <button class="peligro" data-id="${c.id}" data-accion="borrar" aria-label="Borrar el contenedor ${escapar(c.codigo)}">Borrar</button>
               </div>
             </td>
           </tr>`;
         })
-        .join("") || `<tr><td colspan="5">Todavía no hay contenedores.</td></tr>`;
+        .join("") || `<tr><td colspan="5">Todavía no hay contenedores. Cargá el primero con "Nuevo contenedor".</td></tr>`;
   });
 }
 
@@ -444,7 +457,7 @@ function dibujarPlano(plano, contenedores, destino) {
       separadores += `<line x1="${x + k * CELDA}" y1="${y + 5}" x2="${x + k * CELDA}" y2="${y + h - 5}" stroke="#8d98a5" stroke-width="1"/>`;
     }
 
-    partes.push(`<g data-pasillo="${escapar(letra)}" style="cursor:pointer" filter="url(#sombra)">
+    partes.push(`<g data-pasillo="${escapar(letra)}" role="button" tabindex="0" aria-label="Estantería ${escapar(letra)}: ver sus estantes y divisiones" style="cursor:pointer" filter="url(#sombra)">
       <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${esDestino ? "#1f7a72" : "#5f6a76"}"/>
       <rect x="${x + 4}" y="${y + 4}" width="${w - 8}" height="${h - 8}" rx="3" fill="${esDestino ? "#c9ece6" : "#b4bdc7"}"/>
@@ -471,14 +484,16 @@ function dibujarPlano(plano, contenedores, destino) {
       partes.push(flechaSVG(centro(ruta.puntos[i - 1]), centro(ruta.puntos[i]), "#e9fffb"));
     }
     const fin = centro(ruta.puntos[ruta.puntos.length - 1]);
-    partes.push(
-      `<circle cx="${fin.x}" cy="${fin.y}" r="9" fill="none" stroke="#e07a1f" stroke-width="3"><animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/></circle>`
-    );
+    // El pulso del destino se apaga si el usuario pidió menos movimiento.
+    const pulso = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? ""
+      : `<animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/>`;
+    partes.push(`<circle cx="${fin.x}" cy="${fin.y}" r="9" fill="none" stroke="#e07a1f" stroke-width="3">${pulso}</circle>`);
     partes.push(`<circle cx="${fin.x}" cy="${fin.y}" r="4" fill="#e07a1f"/>`);
   }
 
   $("#plano-svg").innerHTML =
-    `<svg viewBox="0 0 ${anchoSvg} ${altoSvg}" width="${anchoSvg}" height="${altoSvg}" role="img" aria-label="Plano del depósito">${partes.join("")}</svg>`;
+    `<svg viewBox="0 0 ${anchoSvg} ${altoSvg}" width="${anchoSvg}" height="${altoSvg}" role="group" aria-label="Plano del depósito con sus estanterías">${partes.join("")}</svg>`;
 
   // Leyenda: ruta y destino.
   $("#plano-leyenda").innerHTML = [
@@ -555,7 +570,7 @@ function dibujarEstanteria(nombre, destino = null) {
     const relleno = esDestino ? "#1f5f5b" : cant ? "#e2eeed" : "#ffffff";
     const color = esDestino ? "#ffffff" : "#14202b";
     partes.push(
-      `<g data-ubicacion="${u.id}" style="cursor:pointer">
+      `<g data-ubicacion="${u.id}" role="button" tabindex="0" aria-label="${escapar(nombre)}, estante ${escapar(u.estante)}, división ${escapar(u.nivel)}: ver contenedores" style="cursor:pointer">
         <title>${escapar(nombre)} · estante ${escapar(u.estante)} · división ${escapar(u.nivel)}</title>
         <rect x="${X(j)}" y="${Y(i)}" width="${RECT_W}" height="${RECT_H}" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
         <text x="${X(j) + RECT_W / 2}" y="${Y(i) + RECT_H / 2 + 5}" text-anchor="middle" font-size="14" font-weight="600" fill="${color}">${cant || "·"}</text>
@@ -564,8 +579,19 @@ function dibujarEstanteria(nombre, destino = null) {
   });
 
   $("#estanteria-svg").innerHTML =
-    `<svg viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" role="img" aria-label="Vista de frente de la estantería ${escapar(nombre)}">${partes.join("")}</svg>`;
+    `<svg viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" role="group" aria-label="Vista de frente de la estantería ${escapar(nombre)}">${partes.join("")}</svg>`;
 }
+
+// Teclado: Enter o Espacio sobre una estantería o una celda equivale a tocarla.
+function activarConTeclado(e) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const objetivo = e.target.closest('g[role="button"]');
+  if (!objetivo) return;
+  e.preventDefault();
+  objetivo.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+}
+$("#plano-svg").addEventListener("keydown", activarConTeclado);
+$("#estanteria-svg").addEventListener("keydown", activarConTeclado);
 
 // Tocar una estantería del plano general abre su vista de frente.
 $("#plano-svg").addEventListener("click", (e) => {
@@ -593,7 +619,7 @@ $("#estanteria-svg").addEventListener("click", (e) => {
 $("#form-contenedor").addEventListener("submit", async (e) => {
   e.preventDefault();
   await intentar(async () => {
-    await P.contenedores.crear(clienteActivo, {
+    const creado = await P.contenedores.crear(clienteActivo, {
       codigoPropio: $("#codigo-propio").value,
       tipo: $("#tipo").value,
       ubicacionId: $("#ubicacion").value || null,
@@ -601,6 +627,7 @@ $("#form-contenedor").addEventListener("submit", async (e) => {
     });
     ocultarPanel("panel-contenedor");
     await cargarContenedores();
+    mostrarAviso(creado?.codigo ? `Contenedor ${creado.codigo} guardado.` : "Contenedor guardado.", "ok");
   });
 });
 
@@ -614,6 +641,7 @@ $("#form-ubicacion").addEventListener("submit", async (e) => {
     });
     ocultarPanel("panel-ubicacion");
     await cargarUbicaciones();
+    mostrarAviso("Ubicación guardada.", "ok");
   });
 });
 
@@ -673,9 +701,11 @@ async function intentar(accion) {
   }
 }
 
-function mostrarAviso(texto) {
+// tipo "ok" muestra una confirmación en verde suave; sin tipo, un aviso en amarillo.
+function mostrarAviso(texto, tipo = "") {
   const el = $("#aviso");
   el.textContent = texto;
+  el.classList.toggle("ok", tipo === "ok");
   el.classList.toggle("oculto", !texto);
 }
 
