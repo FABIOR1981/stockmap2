@@ -79,7 +79,8 @@
     ];
     // Frente de la estantería: la cara donde se leen los estantes y las divisiones (la que se ve en la vista de frente
     // y en el recuadro de detalle). Es la fila libre justo debajo de la estantería en el plano.
-    const esFrenteDestino = (x, y) => libre(x, y) && y === banda.y1 + 1 && x >= banda.x0 && x <= banda.x1;
+    const objetivo = new Set(celdasFrenteDivision(plano, ubicacion).map((c) => `${c.x},${c.y}`));
+    const esFrenteDestino = (x, y) => objetivo.has(`${x},${y}`);
 
     const inicio = plano.entrada;
     const clave = (x, y) => `${x},${y}`;
@@ -143,6 +144,25 @@
       if (y < plano.H && !plano.obstaculos.has(`${x},${y}`)) celdas.push({ x, y });
     }
     return celdas;
+  }
+
+  // Celdas libres delante de la división de una ubicación. Las divisiones se reparten a lo largo del frente,
+  // igual que en el plano 3D: con 3 divisiones, la a usa la primera celda, la b las dos del medio y la c las dos últimas.
+  // Si la división no se encuentra, se usa todo el frente.
+  function celdasFrenteDivision(plano, ubicacion) {
+    const frente = celdasFrente(plano, ubicacion.pasillo);
+    const b = plano.bandas[ubicacion.pasillo];
+    if (!b) return frente;
+    const divisiones = [...new Set(plano.conPosicion.filter((u) => u.pasillo === ubicacion.pasillo).map((u) => u.nivel))]
+      .sort((x, y) => x.localeCompare(y, "es"));
+    const j = divisiones.indexOf(ubicacion.nivel);
+    if (j < 0) return frente;
+    const ancho = b.x1 - b.x0 + 1;
+    const n = divisiones.length;
+    const desde = Math.floor((j * ancho) / n);
+    const hasta = Math.max(desde, Math.floor(((j + 1) * ancho) / n) - 1);
+    const elegidas = frente.filter((c) => c.x - b.x0 >= desde && c.x - b.x0 <= hasta);
+    return elegidas.length ? elegidas : frente;
   }
 
   // Búsqueda en anchura desde uno o varios puntos de partida. Devuelve distancias y punto anterior de cada celda.
@@ -220,7 +240,7 @@
     if (!paradas.length) return null;
     if (paradas.length > MAX_PARADAS) throw new Error(`Hasta ${MAX_PARADAS} ubicaciones por recorrido.`);
 
-    const frentes = paradas.map((u) => celdasFrente(plano, u.pasillo));
+    const frentes = paradas.map((u) => celdasFrenteDivision(plano, u));
     const distanciaDesde = (origenes) => {
       const r = bfs(plano, origenes);
       return (celdas) => celdas.reduce((m, c) => Math.min(m, r.dist.get(`${c.x},${c.y}`) ?? Infinity), Infinity);
