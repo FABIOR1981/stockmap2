@@ -369,6 +369,22 @@ $("#form-ruta").addEventListener("submit", async (e) => {
   });
 });
 
+// Colores de cada tipo de contenedor: los mismos del plano 3D.
+const COLOR_TIPO = { caja: "#c8a26b", bolsa: "#efe8d2", pallet: "#b8895a", tambor: "#2f6fb5", otro: "#7b5ea7" };
+const TEXTO_TIPO = { caja: "#14202b", bolsa: "#14202b", pallet: "#ffffff", tambor: "#ffffff", otro: "#ffffff" };
+
+// Flecha pequeña en el medio del tramo a→b, apuntando hacia b.
+function flechaSVG(a, b, color) {
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const ang = Math.atan2(b.y - a.y, b.x - a.x);
+  const t = 6;
+  const tip = [mx + t * Math.cos(ang), my + t * Math.sin(ang)];
+  const atras = [mx - t * 0.6 * Math.cos(ang), my - t * 0.6 * Math.sin(ang)];
+  const n = [-Math.sin(ang) * t * 0.7, Math.cos(ang) * t * 0.7];
+  return `<polygon points="${tip} ${atras[0] + n[0]},${atras[1] + n[1]} ${atras[0] - n[0]},${atras[1] - n[1]}" fill="${color}"/>`;
+}
+
 function dibujarPlano(plano, contenedores, destino) {
   vistaPlano = {
     ubicaciones: [...plano.conPosicion, ...plano.sinPosicion],
@@ -389,57 +405,114 @@ function dibujarPlano(plano, contenedores, destino) {
   }
 
   // Geometría: cada celda de la cuadrícula es un cuadrado de CELDA píxeles.
-  const CELDA = 26;
-  const IZQ = 64; // margen izquierdo, para la etiqueta de la entrada
-  const TOP = 16;
+  const CELDA = 28;
+  const IZQ = 72; // margen izquierdo, para el rótulo de la entrada
+  const TOP = 20;
   const px = (x) => IZQ + x * CELDA;
   const py = (y) => TOP + y * CELDA;
-  const centro = (x, y) => `${px(x) + CELDA / 2},${py(y) + CELDA / 2}`;
-  const { W, H } = plano;
-  const ancho = px(W) + 24;
-  const alto = py(H) + 16;
+  const centro = (p) => ({ x: px(p.x) + CELDA / 2, y: py(p.y) + CELDA / 2 });
+  const { W, H, entrada } = plano;
+  const anchoSvg = px(W) + 28;
+  const altoSvg = py(H) + 24;
 
-  const partes = [];
-
-  // Piso del depósito: todo lo que no es estantería es espacio libre por donde se camina.
-  partes.push(
-    `<rect x="${px(0)}" y="${py(0)}" width="${W * CELDA}" height="${H * CELDA}" rx="8" fill="#f4f7f9" stroke="#c9d3dd"/>`
-  );
-
-  // Estanterías: bloques que no se atraviesan, tocables; la del destino se resalta.
-  plano.estanterias.forEach((letra) => {
-    const b = plano.bandas[letra];
-    const esDestino = destino && destino.pasillo === letra;
-    const ancho = (b.x1 - b.x0 + 1) * CELDA;
-    const alto = (b.y1 - b.y0 + 1) * CELDA;
-    partes.push(
-      `<g data-pasillo="${escapar(letra)}" style="cursor:pointer">
-        <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
-        <rect x="${px(b.x0)}" y="${py(b.y0)}" width="${ancho}" height="${alto}" rx="6" fill="${esDestino ? "#e2eeed" : "#dfe6ec"}" stroke="${esDestino ? "#1f5f5b" : "#9aa8b6"}" stroke-width="${esDestino ? 2 : 1}"/>
-        <text x="${px(b.x0) + 8}" y="${py(b.y0) + alto / 2 + 5}" font-size="14" font-weight="700" fill="#14202b">${escapar(letra)}</text>
-      </g>`
-    );
+  // Resumen por estantería: ubicaciones con contenedores y cantidad por tipo.
+  const ubicacionPorId = new Map(plano.conPosicion.map((u) => [u.id, u]));
+  const resumen = {};
+  plano.estanterias.forEach((l) => (resumen[l] = { total: 0, ocupadas: new Set(), tipos: {} }));
+  plano.conPosicion.forEach((u) => resumen[u.pasillo].total++);
+  contenedores.forEach((c) => {
+    const u = c.ubicacionId ? ubicacionPorId.get(c.ubicacionId) : null;
+    if (!u) return;
+    resumen[u.pasillo].ocupadas.add(u.id);
+    resumen[u.pasillo].tipos[c.tipo] = (resumen[u.pasillo].tipos[c.tipo] || 0) + 1;
   });
 
-  // Entrada: en la pared izquierda, a mitad de altura.
-  const { entrada } = plano;
-  partes.push(
-    `<text x="${px(0) - 8}" y="${py(entrada.y) + CELDA / 2 + 4}" text-anchor="end" font-size="12" font-weight="600" fill="#4f5c69">Entrada</text>`
-  );
-  partes.push(`<circle cx="${px(entrada.x) + CELDA / 2}" cy="${py(entrada.y) + CELDA / 2}" r="6" fill="#4f5c69"/>`);
+  const partes = [];
+  partes.push(`<defs>
+    <pattern id="juntas" width="${CELDA}" height="${CELDA}" patternUnits="userSpaceOnUse" x="${px(0)}" y="${py(0)}">
+      <path d="M ${CELDA} 0 L 0 0 0 ${CELDA}" fill="none" stroke="#4b5661" stroke-width="1"/>
+    </pattern>
+    <filter id="sombra" x="-15%" y="-15%" width="130%" height="145%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>`);
 
-  // Ruta más corta hasta el frente de la estantería destino.
-  // El detalle de estante y división está en la vista de frente.
+  // Piso epóxico oscuro con juntas y franja blanca de seguridad, igual que en el 3D.
+  partes.push(`<rect x="${px(0)}" y="${py(0)}" width="${W * CELDA}" height="${H * CELDA}" rx="6" fill="#3d4650"/>`);
+  partes.push(`<rect x="${px(0)}" y="${py(0)}" width="${W * CELDA}" height="${H * CELDA}" rx="6" fill="url(#juntas)"/>`);
+  partes.push(
+    `<rect x="${px(0) + 2}" y="${py(0) + 2}" width="${W * CELDA - 4}" height="${H * CELDA - 4}" rx="5" fill="none" stroke="#f2f2f2" stroke-width="3"/>`
+  );
+
+  // Estanterías: vista superior con sombra, división por celdas, tipos de contenedor y ocupación.
+  plano.estanterias.forEach((letra) => {
+    const b = plano.bandas[letra];
+    const r = resumen[letra];
+    const esDestino = destino && destino.pasillo === letra;
+    const x = px(b.x0);
+    const y = py(b.y0);
+    const w = (b.x1 - b.x0 + 1) * CELDA;
+    const h = (b.y1 - b.y0 + 1) * CELDA;
+    const llena = r.total ? r.ocupadas.size / r.total : 0;
+    const tipos = Object.keys(COLOR_TIPO).filter((t) => r.tipos[t]);
+
+    let separadores = "";
+    for (let k = 1; k < b.x1 - b.x0 + 1; k++) {
+      separadores += `<line x1="${x + k * CELDA}" y1="${y + 5}" x2="${x + k * CELDA}" y2="${y + h - 5}" stroke="#8d98a5" stroke-width="1"/>`;
+    }
+    const chips = tipos
+      .map((t, i) => {
+        const cx = x + w - 10 - (tipos.length - 1 - i) * 24 - 22;
+        return `<rect x="${cx}" y="${y + 9}" width="22" height="16" rx="4" fill="${COLOR_TIPO[t]}" stroke="#ffffff" stroke-width="1"/>
+          <text x="${cx + 11}" y="${y + 21}" text-anchor="middle" font-size="11" font-weight="700" fill="${TEXTO_TIPO[t]}">${r.tipos[t]}</text>`;
+      })
+      .join("");
+
+    partes.push(`<g data-pasillo="${escapar(letra)}" style="cursor:pointer" filter="url(#sombra)">
+      <title>Estantería ${escapar(letra)}: ${r.ocupadas.size} de ${r.total} ubicaciones con contenedores. Tocá para ver sus estantes.</title>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${esDestino ? "#1f7a72" : "#5f6a76"}"/>
+      <rect x="${x + 4}" y="${y + 4}" width="${w - 8}" height="${h - 8}" rx="3" fill="${esDestino ? "#c9ece6" : "#b4bdc7"}"/>
+      ${separadores}
+      ${chips}
+      <text x="${x + 9}" y="${y + h / 2 + 6}" font-size="16" font-weight="800" fill="#14202b">${escapar(letra)}</text>
+      <rect x="${x + 9}" y="${y + h - 13}" width="${w - 18}" height="4" rx="2" fill="#9aa4af"/>
+      <rect x="${x + 9}" y="${y + h - 13}" width="${(w - 18) * llena}" height="4" rx="2" fill="#1f7a72"/>
+    </g>`);
+  });
+
+  // Entrada: puerta en la pared izquierda, a mitad de altura.
+  const ex = px(0);
+  const ey = py(entrada.y);
+  partes.push(`<rect x="${ex - 3}" y="${ey + 4}" width="6" height="${CELDA - 8}" rx="2" fill="#9aa4af"/>`);
+  partes.push(
+    `<text x="${ex - 12}" y="${ey + CELDA / 2 + 4}" text-anchor="end" font-size="12" font-weight="700" fill="#14202b">Entrada</text>`
+  );
+
+  // Ruta más corta hasta el frente de la estantería destino, con flechas y el destino marcado.
   if (ruta) {
-    const puntos = ruta.puntos.map((p) => centro(p.x, p.y)).join(" ");
+    const pts = ruta.puntos.map((p) => centro(p)).map((c) => `${c.x},${c.y}`).join(" ");
     partes.push(
-      `<polyline points="${puntos}" fill="none" stroke="#1f5f5b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`
+      `<polyline points="${pts}" fill="none" stroke="#2ec4a6" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`
     );
-    partes.push(`<circle cx="${px(entrada.x) + CELDA / 2}" cy="${py(entrada.y) + CELDA / 2}" r="6" fill="#1f5f5b"/>`);
+    for (let i = 1; i < ruta.puntos.length; i++) {
+      partes.push(flechaSVG(centro(ruta.puntos[i - 1]), centro(ruta.puntos[i]), "#e9fffb"));
+    }
+    const fin = centro(ruta.puntos[ruta.puntos.length - 1]);
+    partes.push(
+      `<circle cx="${fin.x}" cy="${fin.y}" r="9" fill="none" stroke="#e07a1f" stroke-width="3"><animate attributeName="r" values="8;14;8" dur="1.6s" repeatCount="indefinite"/></circle>`
+    );
+    partes.push(`<circle cx="${fin.x}" cy="${fin.y}" r="4" fill="#e07a1f"/>`);
   }
 
   $("#plano-svg").innerHTML =
-    `<svg viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" role="img" aria-label="Plano del depósito">${partes.join("")}</svg>`;
+    `<svg viewBox="0 0 ${anchoSvg} ${altoSvg}" width="${anchoSvg}" height="${altoSvg}" role="img" aria-label="Plano del depósito">${partes.join("")}</svg>`;
+
+  // Leyenda: tipos de contenedor, ruta y destino.
+  $("#plano-leyenda").innerHTML = [
+    ...Object.keys(COLOR_TIPO).map((t) => `<span><i style="background:${COLOR_TIPO[t]}"></i>${escapar(nombreTipo(t))}</span>`),
+    `<span><i style="background:#2ec4a6"></i>Ruta</span>`,
+    `<span><i style="background:#e07a1f"></i>Destino</span>`,
+  ].join("");
 
   if (destino) {
     dibujarEstanteria(destino.pasillo, destino);

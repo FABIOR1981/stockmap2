@@ -145,6 +145,9 @@
       padding: 12px;
     }
     .plano-svg svg { display: block; max-width: none; }
+    .plano-leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; font-size: 0.85rem; color: var(--tinta-suave); }
+    .plano-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+    .plano-leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
     .nota { color: var(--tinta-suave); font-size: 0.88rem; margin: 12px 0 0; }
     .card .subtitulo { font-size: 0.98rem; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.01em; }
     .plano-doble { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
@@ -565,6 +568,7 @@
             <div class="plano-doble">
               <div class="columna">
                 <div id="plano-svg" class="plano-svg"></div>
+                <div id="plano-leyenda" class="plano-leyenda"></div>
                 <p id="plano-sin-posicion" class="nota"></p>
               </div>
               <div class="columna">

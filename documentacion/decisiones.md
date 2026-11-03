@@ -74,6 +74,8 @@ Cada decisión tiene fecha, qué se decidió y por qué. Si una decisión se cam
 
 **Recorrido de varios contenedores en el menú "Ruta".** Se pide la mejor ruta para retirar varios contenedores. Se eligió el orden exacto (programación dinámica, hasta 12 paradas) porque la cantidad de paradas por pedido es chica y el resultado tiene que ser realmente el más corto. Se muestra en la lista y en el plano 3D.
 
+**El plano 2D se dibuja con la misma paleta del 3D.** Sigue siendo vista superior, pero con piso epóxico oscuro, estanterías con sombra, tipos de contenedor por estantería, ocupación y una leyenda. Se mantiene 2D para que sea rápido y fácil de leer en pantallas chicas.
+
 ## Pendientes de decisión
 
 - Almacenamiento definitivo (Cloudflare D1, Supabase u otro).
