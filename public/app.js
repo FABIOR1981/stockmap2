@@ -401,8 +401,10 @@ function dibujarPlano(plano, contenedores, destino) {
   }
 
   // Geometría: cada celda de la cuadrícula es un cuadrado de CELDA píxeles.
-  const CELDA = 28;
+  // Las celdas crecen para llenar la columna disponible (entre 28 y 44 px).
+  const disponiblePlano = $("#plano-svg").clientWidth || 600;
   const IZQ = 72; // margen izquierdo, para el rótulo de la entrada
+  const CELDA = Math.max(28, Math.min(44, Math.floor((disponiblePlano - 24 - 28 - IZQ) / plano.W)));
   const TOP = 20;
   const px = (x) => IZQ + x * CELDA;
   const py = (y) => TOP + y * CELDA;
@@ -520,24 +522,29 @@ function dibujarEstanteria(nombre, destino = null) {
   $("#estanteria-detalle").textContent =
     "Tocá una celda para ver sus contenedores. El número indica cuántos hay; · significa que está vacía.";
 
-  const CELDA_X = 84;
-  const CELDA_Y = 58;
+  // Las columnas (divisiones) crecen para llenar el ancho disponible, con un mínimo legible.
+  const disponible = $("#estanteria-svg").clientWidth || 380;
   const IZQ = 96;
   const TOP = 40;
+  const n = Math.max(est.divisiones.length, 1);
+  const CELDA_X = Math.max(84, Math.min(130, Math.floor((disponible - IZQ - 24) / n)));
+  const CELDA_Y = 72;
+  const RECT_W = CELDA_X - 12;
+  const RECT_H = 58;
   const X = (j) => IZQ + j * CELDA_X; // columna = división
   const Y = (i) => TOP + i * CELDA_Y; // fila = estante
-  const ancho = X(est.divisiones.length) + 20;
-  const alto = TOP + est.estantes.length * CELDA_Y + 20;
+  const ancho = X(est.divisiones.length) + 12;
+  const alto = TOP + est.estantes.length * CELDA_Y + 12;
 
   const partes = [];
   est.divisiones.forEach((d, j) => {
     partes.push(
-      `<text x="${X(j) + 36}" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#14202b">${escapar(d)}</text>`
+      `<text x="${X(j) + RECT_W / 2}" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#14202b">${escapar(d)}</text>`
     );
   });
   est.estantes.forEach((e, i) => {
     partes.push(
-      `<text x="${IZQ - 14}" y="${Y(i) + 28}" text-anchor="end" font-size="13" font-weight="600" fill="#4f5c69">Estante ${e}</text>`
+      `<text x="${IZQ - 14}" y="${Y(i) + RECT_H / 2 + 5}" text-anchor="end" font-size="13" font-weight="600" fill="#4f5c69">Estante ${e}</text>`
     );
   });
   est.celdas.forEach((u) => {
@@ -550,8 +557,8 @@ function dibujarEstanteria(nombre, destino = null) {
     partes.push(
       `<g data-ubicacion="${u.id}" style="cursor:pointer">
         <title>${escapar(nombre)} · estante ${escapar(u.estante)} · división ${escapar(u.nivel)}</title>
-        <rect x="${X(j)}" y="${Y(i)}" width="72" height="46" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
-        <text x="${X(j) + 36}" y="${Y(i) + 28}" text-anchor="middle" font-size="13" font-weight="600" fill="${color}">${cant || "·"}</text>
+        <rect x="${X(j)}" y="${Y(i)}" width="${RECT_W}" height="${RECT_H}" rx="6" fill="${relleno}" stroke="#9aa8b6"/>
+        <text x="${X(j) + RECT_W / 2}" y="${Y(i) + RECT_H / 2 + 5}" text-anchor="middle" font-size="14" font-weight="600" fill="${color}">${cant || "·"}</text>
       </g>`
     );
   });
