@@ -369,10 +369,6 @@ $("#form-ruta").addEventListener("submit", async (e) => {
   });
 });
 
-// Colores de cada tipo de contenedor: los mismos del plano 3D.
-const COLOR_TIPO = { caja: "#c8a26b", bolsa: "#efe8d2", pallet: "#b8895a", tambor: "#2f6fb5", otro: "#7b5ea7" };
-const TEXTO_TIPO = { caja: "#14202b", bolsa: "#14202b", pallet: "#ffffff", tambor: "#ffffff", otro: "#ffffff" };
-
 // Flecha pequeña en el medio del tramo a→b, apuntando hacia b.
 function flechaSVG(a, b, color) {
   const mx = (a.x + b.x) / 2;
@@ -415,18 +411,6 @@ function dibujarPlano(plano, contenedores, destino) {
   const anchoSvg = px(W) + 28;
   const altoSvg = py(H) + 24;
 
-  // Resumen por estantería: ubicaciones con contenedores y cantidad por tipo.
-  const ubicacionPorId = new Map(plano.conPosicion.map((u) => [u.id, u]));
-  const resumen = {};
-  plano.estanterias.forEach((l) => (resumen[l] = { total: 0, ocupadas: new Set(), tipos: {} }));
-  plano.conPosicion.forEach((u) => resumen[u.pasillo].total++);
-  contenedores.forEach((c) => {
-    const u = c.ubicacionId ? ubicacionPorId.get(c.ubicacionId) : null;
-    if (!u) return;
-    resumen[u.pasillo].ocupadas.add(u.id);
-    resumen[u.pasillo].tipos[c.tipo] = (resumen[u.pasillo].tipos[c.tipo] || 0) + 1;
-  });
-
   const partes = [];
   partes.push(`<defs>
     <pattern id="juntas" width="${CELDA}" height="${CELDA}" patternUnits="userSpaceOnUse" x="${px(0)}" y="${py(0)}">
@@ -447,36 +431,23 @@ function dibujarPlano(plano, contenedores, destino) {
   // Estanterías: vista superior con sombra, división por celdas, tipos de contenedor y ocupación.
   plano.estanterias.forEach((letra) => {
     const b = plano.bandas[letra];
-    const r = resumen[letra];
     const esDestino = destino && destino.pasillo === letra;
     const x = px(b.x0);
     const y = py(b.y0);
     const w = (b.x1 - b.x0 + 1) * CELDA;
     const h = (b.y1 - b.y0 + 1) * CELDA;
-    const llena = r.total ? r.ocupadas.size / r.total : 0;
-    const tipos = Object.keys(COLOR_TIPO).filter((t) => r.tipos[t]);
 
     let separadores = "";
     for (let k = 1; k < b.x1 - b.x0 + 1; k++) {
       separadores += `<line x1="${x + k * CELDA}" y1="${y + 5}" x2="${x + k * CELDA}" y2="${y + h - 5}" stroke="#8d98a5" stroke-width="1"/>`;
     }
-    const chips = tipos
-      .map((t, i) => {
-        const cx = x + w - 10 - (tipos.length - 1 - i) * 24 - 22;
-        return `<rect x="${cx}" y="${y + 9}" width="22" height="16" rx="4" fill="${COLOR_TIPO[t]}" stroke="#ffffff" stroke-width="1"/>
-          <text x="${cx + 11}" y="${y + 21}" text-anchor="middle" font-size="11" font-weight="700" fill="${TEXTO_TIPO[t]}">${r.tipos[t]}</text>`;
-      })
-      .join("");
 
     partes.push(`<g data-pasillo="${escapar(letra)}" style="cursor:pointer" filter="url(#sombra)">
-      <title>Estantería ${escapar(letra)}: ${r.ocupadas.size} de ${r.total} ubicaciones con contenedores. Tocá para ver sus estantes.</title>
+      <title>Estantería ${escapar(letra)}: tocá para ver sus estantes y divisiones</title>
       <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${esDestino ? "#1f7a72" : "#5f6a76"}"/>
       <rect x="${x + 4}" y="${y + 4}" width="${w - 8}" height="${h - 8}" rx="3" fill="${esDestino ? "#c9ece6" : "#b4bdc7"}"/>
       ${separadores}
-      ${chips}
       <text x="${x + 9}" y="${y + h / 2 + 6}" font-size="16" font-weight="800" fill="#14202b">${escapar(letra)}</text>
-      <rect x="${x + 9}" y="${y + h - 13}" width="${w - 18}" height="4" rx="2" fill="#9aa4af"/>
-      <rect x="${x + 9}" y="${y + h - 13}" width="${(w - 18) * llena}" height="4" rx="2" fill="#1f7a72"/>
     </g>`);
   });
 
@@ -507,9 +478,8 @@ function dibujarPlano(plano, contenedores, destino) {
   $("#plano-svg").innerHTML =
     `<svg viewBox="0 0 ${anchoSvg} ${altoSvg}" width="${anchoSvg}" height="${altoSvg}" role="img" aria-label="Plano del depósito">${partes.join("")}</svg>`;
 
-  // Leyenda: tipos de contenedor, ruta y destino.
+  // Leyenda: ruta y destino.
   $("#plano-leyenda").innerHTML = [
-    ...Object.keys(COLOR_TIPO).map((t) => `<span><i style="background:${COLOR_TIPO[t]}"></i>${escapar(nombreTipo(t))}</span>`),
     `<span><i style="background:#2ec4a6"></i>Ruta</span>`,
     `<span><i style="background:#e07a1f"></i>Destino</span>`,
   ].join("");
